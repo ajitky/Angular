@@ -9,8 +9,8 @@ Filter          Formats the value of an Expression for display to the user
 View            What the user sees (the DOM)
 Data Binding    Sync data between Model and the View
 Controller      Business logic behind Views
-Dependency Injection (DI)      Creates and wires/injects objects and functions
-Injector        DI container used to retrieve object instances as defined by provider, instantiate types, invoke methods, and load modules
+Dependency Injection (DI)      Creates and wires/injects objects and functions using two important components - $injector and $provide
+Injector        DI container used to identify and retrieve dependencies or object instances as defined by provider, instantiate types, invoke methods, and load modules
 Module          Container for different parts/components of an app, also manages Injector configuration
 Service         Reusable business logic independent of Views
 Providers       Blueprints or instructions for creating object instances which are then ready to be injected into collaborators
@@ -18,8 +18,6 @@ Routes          Map URL paths to templates, views (HTML partials) and controller
 
 Prefixes        Names of Public objects are prefixed with $ and that of Private objects with $$
 componentType   As used below, refers to either controller, directive, factory, filter, service
-
-Angular has two important components which makes dependency injection possible - $injector and $provide. $injector is responsible for identifying and retrieving the dependencies as defined by the provider ($provide) which has the knowledge of how to create the dependencies to be injected.
 */
 
 
@@ -140,21 +138,21 @@ moduleInstance.controller('controllerName', ['$scope', '$rootScope', '$route', '
 
 // Providers
 // ==========
-// Registers a component or service provider with $injector
-// Returns registered provider instance
+// Registers a component/service provider/recipe with $injector to return a registered “singleton” provider/service instance
 // Many of $provide service methods are also exposed on angular.Module
-// Factories and Providers inject whatever is returned by the factory function and $get function respectively, which could be of any type and could potentially change dynamically at runtime. Whereas Service, Constant and Value injections are of a fixed type that Angular is aware of as it is well defined during the definition of the recipe. Hence they are type friendly injections.
-
-// Helper methods to register services without specifying a provider:
+// Factories and Providers inject whatever is returned by the factory and $get function respectively, which could be of any type and could potentially change dynamically at runtime. Whereas Service, Constant and Value injections are of fixed type and well defined during the definition of the recipe, hence considered type friendly in nature.
 
 // Constant Recipe
 // ----------------
 // Register a constant service with the $injector
 // Cannot be overridden by decorator
+// Object available in both config phase and run phase
 // Cannot have dependencies
 // Uses type friendly injection
-// Object available in both config phase and run phase
 // value - can be string, number, array, object or function
+// Preferrably, isolate constant definitions to a module's config method
+// Used to define constant, immutable, configuration values used throughout app
+// returnValue = value
 moduleInstance.constant('name', value);
 // which is same as:
 moduleInstance.config(function($provide) { $provide.constant('name', value); });
@@ -164,10 +162,13 @@ moduleInstance.controller('ctrlName', function(name) { expect(name).toEqual(valu
 // Value Recipe
 // -------------
 // Register a value service with the $injector
+// Object available in run phase, but not in config phase
 // Cannot have dependencies
 // Uses type friendly injection
-// Object available in run phase, but not in config phase
 // value - can be string, number, array, object or function
+// Used to create shared, mutable values across modules and components
+// Used to register an existing value, a service object or a function
+// returnValue = value
 moduleInstance.value('name', value);
 // which is same as:
 moduleInstance.config(function($provide) { $provide.value('name', value); });
@@ -176,14 +177,15 @@ moduleInstance.controller('ctrlName', function(name) { expect(name).toEqual(valu
 
 // Service Recipe
 // ---------------
-// Register a service constructor function with the $injector, which will be invoked with 'new' to create the service instace
-// Under the hood provider's $get property is the service constructor that will be used to instantiate the service instance
-// Can have dependencies
+// Register a service constructor function with the $injector, which will be invoked with 'new' to create a service instace
 // Uses type friendly injection
-// Object available in run phase, but not in config phase
 // Cannot create functions/primitives, works better for objects of custom type
-// Use if the service is defined as a type/class in a OO manner
-// new FunctionYouPassedToService() i.e. Constructor()
+// Can have dependencies
+// Object available in run phase, but not in config phase
+// Used if service is to be defined as a type/class in OO manner to take advantage of prototypal inheritance
+// Used for sharing utility functions, which could also run as function.call(this) or similar
+// Used to persist data across modules and components without initial configuration
+// returnValue = new FunctionYouPassedToService() i.e. Constructor()
 moduleInstance.service('name', ['dep1', ..., function Constructor(dep1, ...) {
     this.properties = values;
 }]);
@@ -194,12 +196,13 @@ moduleInstance.controller('ctrlName', function(name) { expect(name.properties).t
 
 // Factory Recipe
 // ---------------
-// Register a service factory function with the $injector, which will be called to return the service instance
-// Can have dependencies
+// Register a service factory function with the $injector, which will be called to return a service instance
 // Does not uses type friendly injection
-// Object available in run phase, but not in config phase
 // Can create service of type primitive, object literal, function, or custom type instance
-// Use if service need not be configured in a provider
+// Can have dependencies
+// Object available in run phase, but not in config phase
+// Used for returning a ‘class’ function that can then be new'ed to create instances
+// Used with constant functionality modules (i.e., returning a function primitive)
 // returnValue = FunctionYouPassedToFactory() i.e. $getFn()
 moduleInstance.factory('name', ['dep1', ..., function $getFn(dep1, ...) {
     // Internally $getFn is a short hand for $provide.provider(name, {$get: $getFn})
@@ -214,22 +217,23 @@ moduleInstance.controller('ctrlName', function(name) { expect(name).toEqual(serv
 // Provider Recipe
 // ----------------
 // Register a service provider constructor function with the $injector
-// Provider instances are responsible for "providing" a factory for a service
-// Service provider objects can have additional methods which allow configuration of the provider and its service
-// Configures the kind of service created by $get method or how the service will act
+// Allows initialization or configuration of provider and its service during app bootstrap
+// For DI the provider instance is cached in providerCache, whereas the return value of its $get (service instance) is cached in instanceCache
+// Under the hood AngularJS only understands $provide.provider, all others (service, factory, value) are derived ones
 // Core recipe, most verbose and most comprehensive
-// Can have dependencies
-// Does not uses type friendly injection
 // Object available in config phase, but not in run phase
+// Does not uses type friendly injection
 // Can create functions/primitives
-// Use it to expose an API for application-wide configuration that must be made before the application starts
-// Use it for building a reusable piece of code that needs global configuration
-// new FunctionYouPassedToProvider().$get() i.e. name_Provider()
+// Can have dependencies
+// Used if service requires some kind of initialization or configuration before injection that otherwise cannot be adequately addressed
+// Used to expose an API for app-wide configuration that must be made before the app starts
+// returnValue = new FunctionYouPassedToProvider().$get() i.e. name_Provider()
 
 // Way 1 - Constructor function
 moduleInstance.provider('name', function name_Provider() {          // dependencies (Providers, constants, $provide, $injector)
     this.$get = ['dep1', ..., function name_Factory(dep1, ....) {   // dependencies (Instances, constants)
-        return new ServiceConstructor(dep1);                        // returns instance
+        return new ServiceConstructor(dep1);                        // returns service instance
+        // return { ... };                                          // same as line above, using factory pattern
     }];
     var someThing = 'defaultValue';
     this.setSomething = function(configOption){
@@ -276,33 +280,11 @@ moduleInstance.config(['nameProvider', function(nameProvider) {
 // Usage - injected as dependency
 moduleInstance.controller('ctrlName', function(name) { expect(name.properties).toEqual(values); });
 
-// Under the hood AngularJS only understands $provide.provider, all others (service, factory, value) are derived ones
-$provide.service = function(name, Class) {
-    $provide.provider(name, function() {
-        this.$get = function($injector) {
-            return $injector.instantiate(Class);
-        };
-    });
-};
-
-$provide.factory = function(name, factory) {
-    $provide.provider(name, function() {
-        this.$get = function($injector) {
-            return $injector.invoke(factory);
-        };
-    });
-};
-
-$provide.value = function(name, value) {
-    $provide.factory(name, function() {
-        return value;
-    });
-};
-
 // Decorators
 // -----------
 // Intercepts the creation of service to override or augment its behaviour
 // Under the hood the provider $get function is wrapped by decorator
+// Used if a (3rd party) module's service needs a tweak before consuming it in your module, without affecting the original service
 moduleInstance.config(function($provide) {
     // Register a service decorator with the $injector
     // serviceName - name of service to decorate
@@ -337,8 +319,8 @@ moduleInstance.controller('ctrlName', function(serviceName) { expect(serviceName
 // Prefix your own directive names to avoid collisions with future standard if any
 // Factory function is invoked only once when the compiler matches the directive for the first time
 moduleInstance.directive('directiveName', ['dep1', ..., function Factory(dep1, ...) {
-    // Tells $compile how directive should behave when matched
-    // Prefer returning the directive definition object over just a post-link function
+    // Prefer returning the Directive Definition Object over just a post-link function
+    // Tells $compile how the directive should behave when matched
     return {
         // Replace the contents of the directive's element (default)
         // Replace the directive's element itself (if replace:true - DEPRECATED)
@@ -360,7 +342,7 @@ moduleInstance.directive('directiveName', ['dep1', ..., function Factory(dep1, .
         scope: false,
         // Creates child scope, prototypically inherited from parent scope
         scope: true,
-        // Creates new "isolate" scope, not prototypically inherited from parent scope
+        // Creates a new "isolate" scope, not prototypically inherited from parent scope
         // Useful when creating reusable components, which should not read/modify parent scope
         // Object hash defines a set of local scope properties derived from parent scope, used to pass data (attributes/scope) to directive
         scope: {},
@@ -386,9 +368,10 @@ moduleInstance.directive('directiveName', ['dep1', ..., function Factory(dep1, .
         // There can be multiple element instances, but only one template element e.g. ng-repeat
         // The template instance and the link instance may be different objects if the template has been cloned
         // Not safe to do anything other than DOM transformations that apply to all cloned DOM nodes
+        // Called once for each occurrence of the directive in the HTML page to do any one-time configuration needed
         compile: function(templateElement, templateAttrs, transcludeFn) {
             // Wraps all of the containing DOM element’s directives' linking functions
-            // Returning a (post-link) function - equivalent to registering the linking function via link property
+            // Returning a (post-link) function is equivalent to registering the linking function via link property
             return function postLink(scope, instanceElement, instanceAttrs, siblingDirectiveCtrl) { ... }
             // OR
             // Returning an object with function(s) registered via pre & post properties - controls when linking function should be called
@@ -407,6 +390,7 @@ moduleInstance.directive('directiveName', ['dep1', ..., function Factory(dep1, .
         // Executed after template has been cloned. Most of the directive logic will be put here
         // runs for each cloned instance, that's why the compile() does not receive a scope
         // When the directive is removed use element.on('$destroy', ...) or scope.$on('$destroy', ...) to run a clean-up function
+        // Called every time the element is to be bound to data in the $scope object
         link: function postLink(scope, instanceElement, instanceAttrs, siblingDirectiveCtrl, transcludeFn) {
             // 'siblingDirectiveCtrl' is available when 'require' option is used
         },
@@ -425,13 +409,13 @@ moduleInstance.directive('directiveName', ['dep1', ..., function Factory(dep1, .
         // (no prefix) - Locate controller on current element, ^ - element and its parents, ? - pass null to link()) if controller not found
         // Throws error if directive or its controller cannot be found
         require: '^siblingDirectiveName', // or // ['^parentDirectiveName', '?optionalDirectiveName', '?^optionalParent'],
-        // Controller constructor is instantiated before pre-linking phase and is shared with other directives (require attribute)
+        // Controller constructor is instantiated before pre-linking phase and is shared with other directives (see require attribute)
         // Allows the directives to communicate with each other and augment each other's behavior
         controller: [$scope, $element, $attrs, $transclude, otherInjectables, function($scope, ...){
             // '$scope' and 'scope' are same thing. $scope is passed through Dependency Injection whereas scope is not
         }],
         // Compiler collects DOM nodes between nodes with attributes directive-name-start and directive-name-end
-        // Groups collected DOM nodes together as the directive elements
+        // Groups the collected DOM nodes together as the directive elements
         // Use to repeat a series of elements instead of just one parent element
         multiElement: true,
         // Specifies the order in which multiple directives defined on a single DOM element are applied
