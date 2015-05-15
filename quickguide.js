@@ -528,6 +528,18 @@ moduleInstance.filter('name', ['dep1', ..., function(dep1, ...) {
 
 
 
+// Forms
+// ======
+// All HTML5 validation attributes can be used apart from ng- version of each
+// Angular adds appropriate ng-[property] CSS classes to HTML
+<form name="formName" novalidate>
+<input name="inputFieldName" type="XYZ" required ng-model="" ng-[attribute]="" />
+formName.inputFieldName.property
+// Properties: $pristine, $dirty, $valid, $invalid, $error
+<span ng-show="formName.inputFieldName.property && formName.inputFieldName.property">Error Message</span>
+
+
+
 // CSS in AngularJS
 // =================
 ng-scope // applies class to any element for which a new scope is defined
