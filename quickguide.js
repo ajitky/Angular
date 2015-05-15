@@ -532,11 +532,12 @@ moduleInstance.filter('name', ['dep1', ..., function(dep1, ...) {
 // ======
 // All HTML5 validation attributes can be used apart from ng- version of each
 // Angular adds appropriate ng-[property] CSS classes to HTML
-<form name="formName" novalidate>
-<input name="inputFieldName" type="XYZ" required ng-model="" ng-[attribute]="" />
+<form name="formName" novalidate ng-submit="...">
+<input name="inputFieldName" type="XYZ" required ng-model="..." ng-[attribute]="..." ng-class="..." />
 formName.inputFieldName.property
 // Properties: $pristine, $dirty, $valid, $invalid, $error
 <span ng-show="formName.inputFieldName.property && formName.inputFieldName.property">Error Message</span>
+<button type="submit" ng-disabled="formName.inputFieldName.property">Label</button>
 
 
 
