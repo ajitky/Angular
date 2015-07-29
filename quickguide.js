@@ -3,7 +3,7 @@ Template        HTML with additional markup
 Directives      Extend HTML with custom attributes, elements, classes or comments
 Model           Data shown to user in the View and with which the user interacts
 Scope           Context where the Model is stored so that Controllers, Directives and Expressions can access it
-Expressions     JavaScript like expressions that access variables and functions from the Scope
+Expressions     JavaScript like expressions that can access variables and functions from the Scope
 Compiler        Parses the Template and instantiates Directives and Expressions
 Filter          Formats the value of an Expression for display to the user
 View            What the user sees (the DOM)
@@ -26,19 +26,21 @@ componentType   As used below, refers to either controller, directive, factory, 
 // ==========================
 // Automatic
 // ----------
-// ng-app - acts as root of compilation
+// Only one application can be auto-bootstrapped per HTML document
+// ng-app - acts as root of compilation and designates the root element of the application
 // ng-strict-di - creates injector in "strict-di" mode and fails to invoke functions which do not use explicit annotation style (see DI)
-<html ng-app='moduleName' ng-strict-di>
+<html ng-app='[moduleName]' [ng-strict-di]>
 
 // Manual
 // -------
+// Manually bootstrap to run multiple applications in an HTML document, applications cannot be nested within each other
 // Preferred when using script loaders or while performing an operation before compilation phase
 // Not to be used along with 'ng-app' directive
 // Create, load or define your modules and components
-// Cannot add components after an application bootstraps
 angular.module('moduleName', []).componentType('componentName', ['dep', function (dep) { ... }]);
 angular.element(document).ready(function() {
     angular.bootstrap(document, ['moduleName']);
+    // Cannot add components after an application bootstraps
 });
 
 // Deferred
@@ -52,10 +54,10 @@ angular.resumeBootstrap(['moduleName', ...]);
 
 
 
-// Dependency Injection (DI)
-// ==========================
+// Dependency Injection (DI) or Inversion of Control
+// ==================================================
 // Component can get hold of its dependencies in 3 ways - by creating, looking up, and having dependency passed where needed (preferred)
-// First 2 ways hard code dependency to the component making it difficult, if not impossible, to modify dependencies for test isolation
+// First 2 ways hard code dependency to the component, making it difficult if not impossible to modify dependencies for test isolation
 // The 3 equivalent ways to provide dependency annotation information used by injector for resolving dependencies:
 
 // Way 1 - Implicit Dependencies
@@ -73,13 +75,13 @@ componentName['$inject'] = ['dependency', ...];
 function componentName(renamedDependency, ...) { ... };
 componentName.$inject = ['dependency', ...];
 
+angular.module('moduleName').componentType('componentName', componentName);
+
 // Way 3 - Inline Array Annotation
 // --------------------------------
 // Explicit annotation style
 // Order of dependencies must match the order of method parameters
 moduleInstance.componentType('componentName', ['dependency', ..., function(renamedDependency, ...) { ... }]);
-
-// Ref: http://en.wikipedia.org/wiki/Dependency_injection , http://en.wikipedia.org/wiki/Inversion_of_control
 
 
 
@@ -87,7 +89,7 @@ moduleInstance.componentType('componentName', ['dependency', ..., function(renam
 // ========
 // Provide a way of managing $injector configuration and have nothing to do with loading of scripts into VM
 // Each module can only be loaded once, even if multiple other modules require it
-angular.module('moduleName', ['dependency', ...]);    // create or overwrite a module
+angular.module('moduleName', ['dependency', ...]);    // creates or overwrite a module
 angular.module('moduleName');                         // returns an existing module
 
 // Recommended Setup
@@ -98,7 +100,7 @@ angular.module('moduleName', ['moduleName.each_feature', 'moduleName.each_reusab
 
 angular.module('moduleName', []).
     config(['depProvider', function(depProvider) {
-        // config block - gets executed during the provider registrations and configuration phase
+        // config block - gets executed during the provider registration and configuration phase
         // Can only inject constants and Providers (not instances) with exception of services ($provide and $injector) from AUTO module
         // Prevent accidental instantiation of services before they have been fully configured
         // Can have as many of these as you want
@@ -133,6 +135,112 @@ moduleInstance.controller('controllerName', ['$scope', '$rootScope', '$route', '
         // mentioning 'ControllerConstructor' is optional and helps with debugger stack traces
     }
 ]);
+
+
+
+// Expressions
+// ============
+// Processed by $parse service instead of JS eval()
+// Operates on containing scope within which they are called
+// {{ ... }} represents interpolation directive
+<p ng-bind="$parent.$eval(expr)">{{expr}} or {{expr operator expr}}</p>
+<div ng-show="fun(arg)" ng-show="var1 == 'cat'" ng-click="var2 = !var2" ng-show="var3">
+
+// One-time binding
+// -----------------
+// Retains expression value at the end of (first) digest cycle as long as that value is not undefined
+// Gets watch deregistered and frees up resources once the binding is stabilized
+// Reducing the number of expressions being watched makes the digest loop faster and allows more information to be displayed
+// Expression that does not change once set is a candidate for one-time binding
+::expr
+
+// Value stabilization algorithm
+// ==============================
+// Given an ::expression, when a digest loop is entered and expression is dirty-checked, store its value
+// If value != undefined mark expression result as stable and schedule a task to deregister watch for this expression on exiting digest loop
+// Process the digest loop as normal
+// When digest loop is done and all the values have settled, process the queue of watch deregistration tasks
+// For each watch to be deregistered check again if value != undefined
+// Deregister the watch or keep dirty-checking the watch in the future digest loops starting from step 1
+
+
+
+// Forms
+// ======
+// All HTML5 validation attributes can be used apart from ng- version of each
+// Angular adds appropriate ng-[property] CSS classes to HTML
+<form name="formName" novalidate ng-submit="...">
+<input name="inputFieldName" type="XYZ" required ng-model="..." ng-[attribute]="..." ng-class="..." />
+formName.property, formName.inputFieldName.property.validation
+// Properties: $pristine, $dirty, $valid, $invalid, $error, $touched
+<span ng-show="formName.inputFieldName.property && formName.inputFieldName.property">Error Message</span>
+<button type="submit" ng-disabled="formName.inputFieldName.property">Label</button>
+// Using ngMessages approach
+<div ng-messages="<formName>.<inputName>.$error">
+    <p ng-message="<validationName>">Your message here.</p>
+    <p ng-message="<validationName>">Your message here.</p>
+</div>
+// Reusable ngMessages with File
+<div class="help-block" ng-messages="userForm.email.$error">
+    <div ng-messages-include="messages.html"></div>
+</div>
+
+
+
+// CSS in AngularJS
+// =================
+// Angular sets these CSS classes on elements. It is up to your application to provide useful styling.
+ng-scope // element with scope
+ng-isolate-scope // element with isolate scope
+ng-binding // element with data binding, via ng-bind or {{}}
+ng-invalid, ng-valid // element's input validation status
+ng-pristine, ng-dirty // element's user interaction status
+ng-touched, ng-untouched // element's blur status
+
+//To allow styling of form as well as controls, ngModel adds these CSS classes:
+
+ng-valid: the model is valid
+ng-invalid: the model is invalid
+ng-valid-[key]: for each valid key added by $setValidity
+ng-invalid-[key]: for each invalid key added by $setValidity
+ng-pristine: the control hasn't been interacted with yet
+ng-dirty: the control has been interacted with
+ng-touched: the control has been blurred
+ng-untouched: the control hasn't been blurred
+ng-pending: any $asyncValidators are unfulfilled
+
+
+
+// Filters
+// ========
+// Using filters in view templates
+// --------------------------------------------------
+{{expr | filter:arg:arg:... | filter | ...}}
+// Using a filter in view template (ng-repeat) re-evaluates filter on every digest cycle and can be costly (if array is big)
+
+// Using filters in controllers, services, and directives
+// -------------------------------------------------------
+moduleInstance.componentType('componentName', ['dep1', '<filterName>Filter', ...,
+    function componentName (dep1, <filterName>Filter, ...) {
+        output = <filterName>Filter(input, ...);
+    }
+]);
+// OR
+moduleInstance.componentType('componentName', ['dep1', $filter, ...,
+    function componentName (dep1, $filter, ...) {
+        output = $filter('filterName')(input, arg, ...);
+    }
+]);
+
+// Creating Custom Filters
+// ------------------------
+moduleInstance.filter('name', ['dep1', ..., function(dep1, ...) {
+    return function(input, attr1, ...){
+        var output = ...;
+        // ...
+        return output;
+    };
+}]);
 
 
 
@@ -469,85 +577,65 @@ level-1: controller, pre-link, post-link
 
 
 
-// Expressions
-// ============
-// Processed by $parse service instead of JS eval()
-// Operates on containing scope within which they are called
-// {{ ... }} represents interpolation directive
-<p ng-bind="$parent.$eval(expr)">{{expr}} or {{expr operator expr}}</p>
-<div ng-show="fun(arg)" ng-show="var1 == 'cat'" ng-click="var2 = !var2" ng-show="var3">
+// AJAX, Deferred & Promises
+// ==========================
+$http({
+	method: 'GET', 
+	url: 'https://...', 
+	headers: {'Content-Type': undefined}, 
+	data:{abc: 'xyz'},
+	... })
+	.success(function(data, status, headers, config, statusText){...})
+	.error(function(data, status, headers, config, statusText){...});
 
-// One-time binding
-// -----------------
-// Retains expression value at the end of digest cycle as long as that value is not undefined
-// Gets watch deregistered and frees up resources once the binding is stabilized
-// Reducing the number of expressions being watched makes the digest loop faster and allows more information to be displayed
-{{::expr}}
+// Setting HTTP Headers defaults in 'config' block
+$httpProvider.defaults.headers.get = {'header-name': 'header-value'}
+// Or in 'run' block
+$http.defaults.headers.get = {'header-name': 'header-value'}
 
-// Value stabilization algorithm
-// ==============================
-// Given an {{::expression}} when a digest loop is entered and expression is dirty-checked, store its value
-// If value != undefined mark expression result as stable and schedule a task to deregister watch for this expression on exiting digest loop
-// Process the digest loop as normal
-// When digest loop is done and all the values have settled, process the queue of watch deregistration tasks
-// For each watch to be deregistered check if value != undefined
-// If that's the case, deregister the watch. Otherwise keep dirty-checking the watch in the future digest loops starting from step 1
+// Shortcut Methods
+$http.get, $http.head, $http.post, $http.put, $http.delete, $http.jsonp, $http.patch
 
+// Deferred, Promise:
+// -------------------
+// ES6 style promise using $q as a constructor
+function asyncFun(arg){
+	return $q(function(resolve, reject){
+		setTimeout(function(){
+			if(someCondition){
+				resolve(value);
+			} else{
+				reject(reason);
+			}
+		}, 1000);
+		return deferred.promise;
+	});
+}
+var promise = asyncFun(par);
+promise.then(successCallback, errorCallback, notifyCallback).catch(errorCallback).finally(callback, notifyCallback);
 
+// CommonJS-style promise
+function asyncFun(arg){
+	var deferred = $q.defer;
+	setTimeout(function(){
+		deferred.notify(value);
+		if(someCondition){
+			deferred.resolve(value);
+		} else{
+			deferred.reject(reason);
+		}
+	}, 1000);
+	return deferred.promise;
+}
+var promise = asyncFun(par);
+promise.then(successCallback, errorCallback, notifyCallback).catch(errorCallback).finally(callback, notifyCallback);
 
-// Filters
-// ========
-// Using filters in view templates
-// --------------------------------------------------
-{{expr | filter:arg:arg:... | filter | ...}}
-// Using a filter in view template (ng-repeat) re-evaluates filter on every digest cycle and can be costly (if array is big)
+// Chaining Promises
+// promiseB will be resolved immediately after promiseA is resolved and its value will be the result of promiseA incremented by 1
+promiseB = promiseA.then(function(result) {
+  return result + 1;
+});
 
-// Using filters in controllers, services, and directives
-// -------------------------------------------------------
-moduleInstance.componentType('componentName', ['dep1', '<filterName>Filter', ...,
-    function componentName (dep1, <filterName>Filter, ...) {
-        output = <filterName>Filter(input, ...);
-    }
-]);
-// OR
-moduleInstance.componentType('componentName', ['dep1', $filter, ...,
-    function componentName (dep1, $filter, ...) {
-        output = $filter('filterName')(input, arg, ...);
-    }
-]);
-
-// Creating Custom Filters
-// ------------------------
-moduleInstance.filter('name', ['dep1', ..., function(dep1, ...) {
-    return function(input, attr1, ...){
-        var output = ...;
-        // ...
-        return output;
-    };
-}]);
-
-
-
-// Forms
-// ======
-// All HTML5 validation attributes can be used apart from ng- version of each
-// Angular adds appropriate ng-[property] CSS classes to HTML
-<form name="formName" novalidate ng-submit="...">
-<input name="inputFieldName" type="XYZ" required ng-model="..." ng-[attribute]="..." ng-class="..." />
-formName.inputFieldName.property
-// Properties: $pristine, $dirty, $valid, $invalid, $error
-<span ng-show="formName.inputFieldName.property && formName.inputFieldName.property">Error Message</span>
-<button type="submit" ng-disabled="formName.inputFieldName.property">Label</button>
-
-
-
-// CSS in AngularJS
-// =================
-ng-scope // applies class to any element for which a new scope is defined
-ng-binding // applies class to any element that is attached to a data binding, via ng-bind or {{}}
-ng-invalid, ng-valid // applies class to an input widget element whose input "does not/does" pass validation
-ng-pristine, ng-dirty // applies class to an input widget element which "did not/did" have user interaction with it
-ng-touched, ng-untouched //
 
 
 
