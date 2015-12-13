@@ -14,7 +14,7 @@ Injector        DI container used to identify and retrieve dependencies or objec
 Module          Container for different parts/components of an app, also manages Injector configuration
 Service         Reusable business logic independent of Views
 Providers       Blueprints or instructions for creating object instances which are then ready to be injected into collaborators
-Routes          Map URL paths to templates, views (HTML partials) and controllers
+Routes          Maps URL paths to templates, views (HTML partials) and controllers
 
 Prefixes        Names of Public objects are prefixed with $ and that of Private objects with $$
 componentType   As used below, refers to either controller, directive, factory, filter, service
@@ -26,7 +26,8 @@ componentType   As used below, refers to either controller, directive, factory, 
 // ==========================
 // Automatic
 // ----------
-// Only one application can be auto-bootstrapped per HTML document
+// Only one application can be auto-bootstrapped per HTML document (rest can be manually bootstrapped)
+// In case of multiple ng-app, the first one will be considered and the rest will be ignored
 // ng-app - acts as root of compilation and designates the root element of the application
 // ng-strict-di - creates injector in "strict-di" mode and fails to invoke functions which do not use explicit annotation style (see DI)
 <html ng-app='[moduleName]' [ng-strict-di]>
@@ -37,11 +38,17 @@ componentType   As used below, refers to either controller, directive, factory, 
 // Preferred when using script loaders or while performing an operation before compilation phase
 // Not to be used along with 'ng-app' directive
 // Create, load or define your modules and components
-angular.module('moduleName', []).componentType('componentName', ['dep', function (dep) { ... }]);
+angular.module('module1Name', []).componentType('componentName', ['dep', function (dep) { ... }]);
+angular.module('module2Name', []).componentType('componentName', ['dep', function (dep) { ... }]);
 angular.element(document).ready(function() {
-    angular.bootstrap(document, ['moduleName']);
-    // Cannot add components after an application bootstraps
+    angular.bootstrap(element1, ['module1Name']);
+    angular.bootstrap(element2, ['module2Name']);
+    // Cannot add more components after an application bootstraps
 });
+
+// Mixed
+// -------
+// Automatic and Manual approach can be combined, with ng-app for one app and bootstrap(...) for rest of the apps
 
 // Deferred
 // ---------
@@ -97,15 +104,16 @@ angular.module('moduleName');                         // returns an existing mod
 angular.module('moduleName.each_feature', []);
 angular.module('moduleName.each_reusable_component', []);   //especially directives and filters
 angular.module('moduleName', ['moduleName.each_feature', 'moduleName.each_reusable_component']);   //application level module with init code
+// Above the modules each_feature and each_reusable_component have access to each other without any injection in respective definations
 
 angular.module('moduleName', []).
-    config(['depProvider', function(depProvider) {
+    config(['depProvider', .., function(depProvider, ...) {
         // config block - gets executed during the provider registration and configuration phase
         // Can only inject constants and Providers (not instances) with exception of services ($provide and $injector) from AUTO module
         // Prevent accidental instantiation of services before they have been fully configured
         // Can have as many of these as you want
     }]).
-    run(['depService', function(depService) {
+    run(['depService', ..., function(depService, ...) {
         // run block - gets executed after the injector is created and are used to kickstart the application
         // Can only inject constants and instances (not Providers)
         // Prevent further system configuration during application run time
@@ -170,12 +178,17 @@ moduleInstance.controller('controllerName', ['$scope', '$rootScope', '$route', '
 // All HTML5 validation attributes can be used apart from ng- version of each
 // Angular adds appropriate ng-[property] CSS classes to HTML
 <form name="formName" novalidate ng-submit="...">
-<input name="inputFieldName" type="XYZ" required ng-model="..." ng-[attribute]="..." ng-class="..." />
+<input name="inputFieldName" type="XYZ" ng-model="..." required ng-[attribute]="..." ng-pattern="..." ng-class="..." />
+
+// property: $error, $pristine, $dirty, $valid, $invalid, $touched
+// validation: required, ng-[attribute], type="XYZ"
 formName.property, formName.inputFieldName.property.validation
-// Properties: $pristine, $dirty, $valid, $invalid, $error, $touched
+
 <span ng-show="formName.inputFieldName.property && formName.inputFieldName.property">Error Message</span>
 <button type="submit" ng-disabled="formName.inputFieldName.property">Label</button>
+
 // Using ngMessages approach
+// --------------------------
 <div ng-messages="<formName>.<inputName>.$error">
     <p ng-message="<validationName>">Your message here.</p>
     <p ng-message="<validationName>">Your message here.</p>
@@ -189,32 +202,21 @@ formName.property, formName.inputFieldName.property.validation
 
 // CSS in AngularJS
 // =================
-// Angular sets these CSS classes on elements. It is up to your application to provide useful styling.
+// Angular (ngModel) sets these CSS classes on binded elements. It is up to your application to provide useful styling.
 ng-scope // element with scope
 ng-isolate-scope // element with isolate scope
 ng-binding // element with data binding, via ng-bind or {{}}
-ng-invalid, ng-valid // element's input validation status
+ng-invalid-[key], ng-valid-[key] // element's input validation status [added by $setValidity]
 ng-pristine, ng-dirty // element's user interaction status
 ng-touched, ng-untouched // element's blur status
-
-//To allow styling of form as well as controls, ngModel adds these CSS classes:
-
-ng-valid: the model is valid
-ng-invalid: the model is invalid
-ng-valid-[key]: for each valid key added by $setValidity
-ng-invalid-[key]: for each invalid key added by $setValidity
-ng-pristine: the control hasn't been interacted with yet
-ng-dirty: the control has been interacted with
-ng-touched: the control has been blurred
-ng-untouched: the control hasn't been blurred
-ng-pending: any $asyncValidators are unfulfilled
+ng-pending // any $asyncValidators are unfulfilled
 
 
 
 // Filters
 // ========
 // Using filters in view templates
-// --------------------------------------------------
+// --------------------------------
 {{expr | filter:arg:arg:... | filter | ...}}
 // Using a filter in view template (ng-repeat) re-evaluates filter on every digest cycle and can be costly (if array is big)
 
@@ -248,7 +250,8 @@ moduleInstance.filter('name', ['dep1', ..., function(dep1, ...) {
 // ==========
 // Registers a component/service provider/recipe with $injector to return a registered “singleton” provider/service instance
 // Many of $provide service methods are also exposed on angular.Module
-// Factories and Providers inject whatever is returned by the factory and $get function respectively, which could be of any type and could potentially change dynamically at runtime. Whereas Service, Constant and Value injections are of fixed type and well defined during the definition of the recipe, hence considered type friendly in nature.
+// Factories and Providers inject whatever is returned by the factory and $get function respectively, which could be of any type and could potentially change dynamically at runtime. 
+//Whereas Service, Constant and Value injections are of fixed type and well defined during the definition of the recipe, hence considered type friendly in nature.
 
 // Constant Recipe
 // ----------------
@@ -506,7 +509,7 @@ moduleInstance.directive('directiveName', ['dep1', ..., function Factory(dep1, .
         link: {
             pre: function preLink( ... ){ ... },
             post: function postLink( ... ){ ... }
-        },
+        },  
         // true - Compile the DOM content of element/consumer and transclude/include/import/make it available into the directive
         // 'element' - Transclude the whole element including any directives defined at lower priority
         // Used with "ngTransclude" directive to mark the insertion point for transcluded DOM of nearest parent directive using transclusion
@@ -616,7 +619,7 @@ promise.then(successCallback, errorCallback, notifyCallback).catch(errorCallback
 
 // CommonJS-style promise
 function asyncFun(arg){
-	var deferred = $q.defer;
+	var deferred = $q.defer();
 	setTimeout(function(){
 		deferred.notify(value);
 		if(someCondition){
@@ -635,7 +638,6 @@ promise.then(successCallback, errorCallback, notifyCallback).catch(errorCallback
 promiseB = promiseA.then(function(result) {
   return result + 1;
 });
-
 
 
 
@@ -662,3 +664,99 @@ yourRootNamespace.yourApp.componentType('componentName', componentName);
 
 
 
+// Complex Nesting of Partials and Templates
+// ==========================================
+<div ng-view></div> // Layout template
+
+// Leveraging strings in ng-include:
+<a ng-click="subPage='section1/subpage1.htm'">Sub Page 1</a> ... // View template
+<ng-include src="subPage"></ng-include> // View template
+
+// Create an object with links to sub pages:
+$scope.pages = { page1: 'section1/subpage1.htm', ... }; // Controller
+<a ng-click="subPage='page1'">Sub Page 1</a> ... // View template
+<ng-include src="pages[subPage]"></ng-include> // View template
+
+// Using $routeParams:
+$routeProvider.when('/home/:tab', ...); // Config block
+$scope.params = $routeParams; // Controller
+<a href="#/home/tab1">Sub Page 1</a> ... // View template
+<ng-include src=" '/home/' + params.tab + '.html' "></ng-include> // View template
+
+// Using ng-switch:
+
+// Using Nested Directive Controls:
+
+// there are no ways to keep the parent state unchanged when children are updated via routing mechanics - the $route service re-creates the whole scope after a route is changed, losing its state completely. 
+
+
+
+// Manual Bootstrap
+(function() {
+    var myApplication = angular.module("myApplication", []);
+
+    fetchData().then(bootstrapApplication);
+
+    function fetchData() {
+        var initInjector = angular.injector(["ng"]);
+        var $http = initInjector.get("$http");
+
+        return $http.get("/path/to/data.json").then(function(response) {
+            myApplication.constant("config", response.data);
+        }, function(errorResponse) {
+            // Handle error case
+        });
+        
+        $injector.invoke(function($rootScope, $compile, $document) {
+            $compile($document)($rootScope);
+            $rootScope.$digest();
+        });
+        
+        // HTML block containing ng-controller added to end of document body by JQuery, and then compiled and linked into current AngularJS scope
+        var $div = $('<div ng-controller="MyCtrl">{{content.label}}</div>');
+        $(document.body).append($div);
+        angular.element(document).injector().invoke(function($compile) {
+            var scope = angular.element($div).scope();
+            $compile($div)(scope);
+        });
+        
+        $injector.instantiate(function myCtrl($scope){ });
+    }
+
+    function bootstrapApplication() {
+        angular.element(document).ready(function() {
+            angular.bootstrap(document, ["myApplication"]);
+        });
+    }
+}());
+
+
+// $injector = angular.injector(modules, [strictDi]);
+// Creates an injector object that can be used for retrieving services as well as for dependency injection.
+// $injector is used to retrieve object instances as defined by provider, instantiate types, invoke methods, and load modules.
+// $provide service has a number of methods for registering components with the $injector.
+// When you request a service, the $injector is responsible for finding the correct service provider, instantiating it and then calling its $get service factory function to get the instance of the service.
+
+
+
+// angularFiles.js - defines config info for Grunt build task, has map of files
+// src\[angular/*].[prefix/suffix] - prepends/appends code at the beginning/end of other files during the build process
+// angular.prefix - IIFE
+// angular.suffix - checks if Angular has already bootstraped, binds jQuery to angular.element if available, publish Angular public API, calls angularInit() on DOMContentLoaded event
+// angularInit() -  sniff out any Angular application instances declared on the page from an elements array, and sends it off to bootstrap() via appElement
+//   Loop through the names array and query anything that could be an Angular app, then append the queried elements to our elements array.
+//   Loop through our elements array and see if there's anything that should be bootstrapped as an application and assign it to appElement.
+//   Loop through the attributes of the element and see if any of the attribute names match keys from our names array.
+//   Bootstrap the element that has the application declaration.
+// angular.bootstrap() - compiles passed element's static content to dynamic Angular app along with its dependencies and scope
+//   Convert the element we passed in to a jqLite element
+//   Ensure there is no injector setup for the element already i.e the element has not already been bootstrapped
+//   Provide $rootElement to the element that is being bootstrapped
+//   Create an injector instance and assign it to "injector"
+//   Invoke scope.$apply() and inject scope, element, compile, injector and animate as dependencies
+//   Instance of the $injector returned from doBootstrap()
+//   Setup a regular expression to look for "NG_DEFER_BOOTSTRAP"
+//   Check window.name against our regex and call doBootstrap() if it fails
+//   Remove "NG_DEFER_BOOTSTRAP" from window.name
+//   Create a method that allows for extra modules to be added to during the bootstrapping process
+// Element is compiled with its dependencies and scope
