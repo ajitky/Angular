@@ -1,0 +1,385 @@
+AngularUI Router is a replacement module for AngularJS ngRoute. 
+    It is build upon ngRoute's features by adding nested views and states capabiliites 
+        as well as the ability to have multiple named views at any level in the state tree.
+
+Angular: Single view mapped to URL routes
+Ember: Unlimited nested views mapped to nested routes
+
+ngRoute - $route / $routeProvider (current, single level)
+- Organized around URL routes
+index.html
+	ng-view - content changes with URL... '/home' or '/contacts'
+		ng-include, ng-switch, ng-show/hide
+
+ui-router - $state / $stateProvider & $urlRouterProvider
+- Organized around states, which may optionally have routes as well as other behavior attached
+- States are bound to 'named, nested and parallel views', allowing application's interface to be powerfully managed
+
+
+States vs. Routes:
+------------------
+- 'Place' vs 'URL' within app
+- 'Nested' vs 'flat' hierarchy
+- Names are 'names' vs 'url'
+- Navigate by 'name/url' vs 'url'
+- 'Multiple (ui-view)' vs 'single (ng-view)' view(s)
+- Populate 'any' vs 'the one' view
+- 'State' vs 'directives' populate parts
+
+$stateProvider.state('contact.detail', {
+    url: '/contacts/:id',		    //optional
+    template: '<h1>Hello</h1>',     //plug into the ui-view
+    templateUrl: 'contacts.html',   //plug into the ui-view
+    resolve: { ... }			    //optional, resolve dependencies before controller instantiates
+    controller: function($scope){ ... },	//optional
+}) 
+$routeProvider.when('/contacts/:id', {
+    template: '<h1>Hello</h1>',
+    templateUrl: 'contacts.html',
+    resolve: { ... }			            //optional
+    controller: function($scope){ ... },	//optional
+}) 
+
+
+Other Similarities:
+-------------------
+Redirect with when()
+	ngRoute - Main method for adding routes
+	ui.router - Just for creating url redirects ($urlRouterProvider)
+$urlRouterProvider
+    .when('/user/:id', '/contacts/:id')     // url redirect
+    .otherwise('/');                        // handles invalid urls
+url parameters
+
+<script src="angular-ui-router.js"></script>
+angular.module("myApp", ["ui.router"])
+
+Apps usually consist of components within components within components.
+    States naturally describe these nested 'pieces/components/controls', like a state within a state within a state...
+
+index.html
+	ui-view - list
+		ui-view - detail
+			ui-view - sub detail
+
+Each template is inserted into the 'ui-view' of its parent state's template. 'index <= top <= top.middle <= top.middle.bottom'
+
+index.html
+<body>
+    <ui-view/>
+</body>
+
+app.js
+.state('top', {
+    template:"<ui-view/>"
+})
+.state('top.middle', {
+    template:"<ui-view/>"
+})
+.state('top.middle.bottom', {
+    template:"<ui-view/>"
+}) 
+
+
+2 ways to nest states:
+----------------------
+The 'dot' in the state name auto-denotes parental hierarchy
+$stateProvider
+    .state('contacts', {})
+    .state('contacts.list', {});
+
+The 'parent' property in config
+$stateProvider
+    .state('contacts', {})
+    .state('list', {
+         parent: 'contacts'
+     });
+
+Object-based States:
+--------------------
+var contacts = { 
+    name: 'contacts',  //mandatory
+    templateUrl: 'contacts.html'
+};
+var contactsList = { 
+    name: 'list',      //mandatory
+    parent: contacts,  //mandatory
+    templateUrl: 'contacts.list.html'
+};
+
+$stateProvider
+    .state(contacts)
+    .state(contactsList);
+
+
+Inheritance:
+------------
+Scope Properties and Methods (this only happens if 'template' nesting mirrors 'state' nesting)
+
+Child states inherit from their parents:
+- Resolved Dependencies
+- Custom Data
+
+Inherited Resolved Dependencies:
+--------------------------------
+   .state('parent', {
+      resolve:{
+         resA:  function(){
+            return {'value': 'A'};
+         }
+      },
+      controller: function($scope, resA){
+          $scope.resA = resA.value;
+      }
+   })
+   .state('parent.child', {
+      resolve:{
+         resB: function(resA){
+            return {'value': resA.value + 'B'};
+         }
+      },
+      controller: function($scope, resA, resB){
+          $scope.resA2 = resA.value;
+          $scope.resB = resB.value;
+      } 
+
+Inherited Custom Data:
+----------------------
+// use 'data' property if possible to avoid conflicts
+$stateProvider
+   .state('parent', {
+      data:{
+         customData1:  "Hello",
+         customData2:  "World!"
+      }
+   })
+   .state('parent.child', {
+      data:{
+         // customData1 inherited from 'parent' 
+         // but we'll overwrite customData2
+         customData2:  "UI-Router!"
+      }
+   });
+
+$rootScope.$on('$stateChangeStart', function(event, toState){ 
+    var greeting = toState.data.customData1 + " " + toState.data.customData2;
+    console.log(greeting);
+}) 
+
+
+Activating a Child State:
+-------------------------
+- Activates any unactivated states from top parent (implicit root state) to bottom child.
+- On change of state, Exit only the required active states from bottom to top.
+- The other active states are left alone, no redundant work is done.
+
+
+Callbacks:
+----------
+OnEnter and onExit
+    called when a state becomes active and inactive respectively
+    
+$stateProvider.state("contacts", {
+    template: '<h1>{{title}}</h1>',
+    resolve: { title: 'My Contacts' },
+    controller: function($scope, title){
+        $scope.title = 'My Contacts';
+    },
+    onEnter: function(title){
+        if(title){ ... }
+    },
+    onExit: function(title){
+        if(title){ ... }
+    }
+});
+
+
+State Change Events:
+--------------------
+All these events are fired at the $rootScope level.
+
+$stateChangeStart (event, toState, toParams, fromState, fromParams)
+    use event.preventDefault() to prevent the transition from happening
+$stateNotFound (event, unfoundState, fromState, fromParams) 
+    good for lazy state definitions
+$stateChangeSuccess (event, toState, toParams, fromState, fromParams)
+$stateChangeError (event, toState, toParams, fromState, fromParams, error)
+
+View Load Events:
+-----------------
+$viewContentLoading (event, viewConfig)
+$viewContentLoaded (event)
+
+
+3 Ways to Activate a State:
+---------------------------
+1. Call '$state.go()' - Programmatic state navigation
+    myApp.controller('contactCtrl', ['$scope', '$state', 
+    function($scope, $state){
+        $scope.goToDetails = function(){
+            $state.go('contact.details', {id: selectedId});
+        }
+    }
+    Params...
+    1. state name
+    2. state params (optional)
+    3. options (optional)
+    { location: true, inherit: true, relative: $state.$current, notify: true, reload: false }
+    
+    Relative (to current state) Navigation special characters:
+    ^ is up
+    . is down
+    
+    Go to parent - $state.go('^')
+    Go to child - $state.go('.child')
+    Go to sibling - $state.go('^.sibling')
+    Absolute path - $state.go('parent.child') - starts from implicit root state
+    Cousin (same level, different parent) - $state.go('^.^.child.child')
+
+2. Click a link with 'ui-sref' directive
+    <a ui-sref="contacts.detail({ id: contact.id })" href="#/contacts/detail/:id">Link Text</a>
+    If 'url'exists, generates href attr during compile process
+    Can use relative paths (^ .) to the state that the link lives in
+
+3. Navigate to the state's 'url' (if provided)
+
+
+Nested Urls:
+------------
+By default, urls are appended to parent state's urls.
+
+$stateProvider
+  .state('contacts', {
+     url: '/contacts',
+  })
+  .state('contacts.list', {
+     url: '/list',                  // url becomes '/contacts/list'
+  });
+
+For Absolute URLs (w/o appendage) Prepend with ^
+  .state('contacts.list', {
+     url: '^/list',                 // url becomes '/list'
+  });
+
+
+URL Parameters:
+---------------
+Basic
+    url: '/contacts/:contactId'
+    url: '/contacts/{contactId}'
+Regex
+    url: '/contacts/{contactId:[0-9a-fA-F]{1,8}}' // Hexadecimals
+Query
+    url: '/contacts?contactId&contactRegion' // separate parameters with '&'
+
+
+$stateParams:
+-------------
+Given a State URL as:
+url: '/users/:id/details/{type}/{repeat:[0-9]+}?from&to'
+
+When navigated to: '/users/123/details//0'
+$stateParams will be: { id:'123', type:'', repeat:'0' }
+
+When navigated to: '/users/123/details/default/0?from=there&to=here'
+$stateParams will be: { id:'123', type:'default', repeat:'0', from:'there', to:'here' }
+
+Important $stateParams 'Gotcha':
+    In state controllers, $stateParams is scoped to contain only params declared in that state. 
+        So params from parent states will not be present in the $stateParams object.
+
+$stateProvider
+    .state('contacts.detail', {
+        url: '/contacts/:contactId',   
+        resolve: { depA: function(){ 
+            return $state.current.params.contactId + "!" }; 
+        },
+        controller: function($stateParams){
+            $stateParams.contactId      // Exists!
+        }
+    })
+    .state('contacts.detail.subitem', {
+        url: '/item/:itemId', 
+        controller: function($stateParams){
+            $stateParams.contactId      // Doesn't exist
+            $stateParams.itemId         // Exists!   
+        }
+    });
+
+
+Multiple Named Views:
+---------------------
+By default there is an 'Implicit Root State' that is always active.
+- No name
+- Url is absolute root
+- Can't activate it directly
+- Most important, its "template" is index.html
+
+
+Naming Views:
+-------------
+Mandatory if a template has two or more views, optional otherwise.
+    <div ui-view='main'>
+    <div ui-view='sidenav'>
+
+
+Configure Multiple Views:
+-------------------------
+Use the 'views' config object
+    Each key is a view name, each value is a view config object
+    
+$stateProvider
+    .state('deep.down.state.mainbits', {
+        url: "url/still/goes/up/here"
+        views: {
+            'main@': {
+                template: ...,
+                templateUrl: ...,
+                templateProvider: ...,
+                controller:...,
+                controllerProvider: ...
+            },
+            'sidenav@': { ... }
+        }
+    });
+
+
+View Name:
+----------
+Can use relative or absolute naming
+    Relative (always parent)
+        'main' - 'main' view in parent template
+        ' ' - unnamed view in parent template
+    Absolute (uses @ symbol)
+        'list@contacts' - 'list' view in 'contacts' state's template
+        'list@' - 'list' view in index.html.
+        '@contacts' - unnamed view in 'contacts' state's template
+        '@' - unnamed view in index.html
+
+
+Consider:
+---------
+Anti-patterns aren't clear cut.
+
+What quadrants are dependent on other quadrants? 
+Nested Views for those.
+
+Are multiple quadrants dependent on same parent? Yes.
+And, do the quadrants really need to be separated? Hmm.
+Can they share scope? Yes.
+Then share single view and nest it.
+
+Or maybe need encapsulation (unshared scope)? Yes.
+Multiple Named Views.
+
+
+Abstract States:
+----------------
+Abstract States cannot be explicitly activated (attempts to activate it directly will throw ERROR)
+It can have child states
+It is activated implicity when one of its descendants are activated
+Abstract states will need their own <ui-view/> if child states intend to populate with templates
+Abstract state is used for setting options for its child states
+
+
+
