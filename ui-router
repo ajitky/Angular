@@ -139,7 +139,7 @@ Inherited Resolved Dependencies:
          }
       },
       controller: function($scope, resA, resB){
-          $scope.resA2 = resA.value;
+          $scope.resA = resA.value;
           $scope.resB = resB.value;
       } 
 
