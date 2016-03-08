@@ -1,0 +1,88 @@
+Since a large AngularJS application has many components it's best to structure it in a directory hierarchy.
+Provides a consistent structure that scales well, is modular, increase developer efficiency.
+
+There are two main approaches:
+Creating high-level divisions by component types and lower-level divisions by functionality.
+Creating high-level divisions by functionality and lower-level divisions by component types.
+
+1 file - 1 component/feature (deviation - when we have a set of very small related features)
+
+Naming Guidelines:
+------------------
+Use dashes - to separate words, and dots . to separate major categories of features
+component file - [feature-]feature.type.js
+unit test file - [feature-]feature.type.spec.js
+registered name - feature[Feature]Type (services) or FeatureType (controllers) or prefixFeature (directives)
+
+LIFT Guidelines:
+----------------
+Locating code needs to be untuitive, simple and fast
+Identify code at a glance looking at file name
+Flat structure as long as we can, not too deep or flat
+Try to stay DRY (Don't Repeat Yourself) or T-DRY
+
+Application Structure:
+----------------------
+Small, self contained modules
+Thin aggregator app module
+Feature areas are modules
+Reusable code blocks are modules
+
+src
+	server
+		data
+		routes
+	client
+		app - root module, pulls together all modules and features
+			app.module.js - ('app', ['app.core','app.widgets','app.layout','app.moduleN', ...])
+			app.config.js
+			app.routes.js
+			core - shared modules
+				core.module.js - ('app.core', ['ngXyz', ..., 'blocks.xyz', ..., 'ui.router','ngplus'])
+				can also have following types - config, routes, constants, services, providers, specs, ...
+			widgets / components
+				widgets.module.js - ('app.widgets', [])
+				types - x-y-z.directive.js, html, css, spec.js, ...
+			blocks - cross-app modules
+				exception
+					exception.module.js - ('blocks.exception', ['blocks.logger'])
+					types - services, providers, specs, ...
+				logger
+					logger.module.js - ('blocks.logger', [])
+					types - services, providers, specs, ...
+				router
+					router.module.js - ('blocks.router', ['ui.router','blocks.logger'])
+					types - services, providers, specs, ...
+				diagnostics, security, sessions, local-storage, spinner, data, app-generics, ...more such blocks
+			layout - overall app layout
+				layout.module.js - ('app.layout', ['app.core'])
+				types - templates, controllers, directives, ...
+			moduleN - encapsulates one responsibility
+				moduleN.module.js - ('app.moduleN', ['app.core','app.widgets'])
+				moduleN.config.js
+				moduleN.route.js
+				x-y-z.html
+				x-y-z.controller.js
+				x-y-z.service.js
+				x-y-z.provider.js
+				x-y-z.type.spec.js
+				shared / common
+		content
+			styles / css
+			fonts
+			images
+		test
+			types - test helpers, polyfills, mock data, ...
+		index.html
+bower_components - 3rd party vendor scripts
+libs / scripts - 3rd party vendor scripts
+bower.json
+package.json
+Gruntfile.js
+gulpfile.js
+gulp.config.js
+karma.conf.js
+
+
+Resources:
+https://github.com/johnpapa/generator-hottowel
