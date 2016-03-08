@@ -1,20 +1,20 @@
 /*
 Template        HTML with additional markup
-Directives      Extend HTML with custom attributes, elements, classes or comments
-Model           Data shown to user in the View and with which the user interacts
-Scope           Context where the Model is stored so that Controllers, Directives and Expressions can access it
-Expressions     JavaScript like expressions that can access variables and functions from the Scope
-Compiler        Parses the Template and instantiates Directives and Expressions
-Filter          Formats the value of an Expression for display to the user
-View            What the user sees (the DOM)
-Data Binding    Sync data between Model and the View
+Directives      Extends HTML with custom attributes, elements, classes or comments
+Model           Data shown in View for user interaction
+Scope           Context where Model is stored so that Controllers, Directives and Expressions can access it
+Expressions     JavaScript like expressions with access to Scope
+Compiler        Parses Template and instantiates Directives and Expressions
+Filter          Formats value of an Expression for display to user
+View            What user sees (the DOM)
+Data Binding    Sync data between Model and View
 Controller      Business logic behind Views
-Dependency Injection (DI)      Creates and wires/injects objects and functions using two important components - $injector and $provide
-Injector        DI container used to identify and retrieve dependencies or object instances as defined by provider, instantiate types, invoke methods, and load modules
-Module          Container for different parts/components of an app, also manages Injector configuration
+Dependency Injection (DI)      Creates and wires objects and functions using $injector and $provide
+Injector        DI container used to identify and retrieve dependencies, instantiate types, invoke methods, and load modules
+Module          Container for different components of an app, also manages Injector configuration
 Service         Reusable business logic independent of Views
-Providers       Blueprints or instructions for creating object instances which are then ready to be injected into collaborators
-Routes          Maps URL paths to templates, views (HTML partials) and controllers
+Providers       Blueprints for creating object instances which are then ready to be injected into collaborators
+Routes          Maps URL paths to templates, partials and controllers
 
 Prefixes        Names of Public objects are prefixed with $ and that of Private objects with $$
 componentType   As used below, refers to either controller, directive, factory, filter, service
@@ -26,18 +26,16 @@ componentType   As used below, refers to either controller, directive, factory, 
 // ==========================
 // Automatic
 // ----------
-// Only one application can be auto-bootstrapped per HTML document (rest can be manually bootstrapped)
-// In case of multiple ng-app, the first one will be considered and the rest will be ignored
-// ng-app - acts as root of compilation and designates the root element of the application
-// ng-strict-di - creates injector in "strict-di" mode and fails to invoke functions which do not use explicit annotation style (see DI)
+// Only one application can be auto-bootstrapped per HTML document, rest can be manually bootstrapped
+// Using multiple ng-app, first will be considered and rest will be ignored
+// ng-app - acts as root of compilation and designates root element of application
+// ng-strict-di - creates injector in "strict-di" mode and invokes functions using explicit annotation style (see DI)
 <html ng-app='[moduleName]' [ng-strict-di]>
 
 // Manual
 // -------
-// Manually bootstrap to run multiple applications in an HTML document, applications cannot be nested within each other
+// Runs multiple non-nested applications per HTML document
 // Preferred when using script loaders or while performing an operation before compilation phase
-// Not to be used along with 'ng-app' directive
-// Create, load or define your modules and components
 angular.module('module1Name', []).componentType('componentName', ['dep', function (dep) { ... }]);
 angular.module('module2Name', []).componentType('componentName', ['dep', function (dep) { ... }]);
 angular.element(document).ready(function() {
@@ -52,8 +50,8 @@ angular.element(document).ready(function() {
 
 // Deferred
 // ---------
-// Hooks into AngularJS bootstrap process and sneak in more modules into the DI registry
-// Can replace or augment DI services for the purpose of instrumentation or mocking out heavy dependencies
+// Hooks into bootstrap process and sneak in more modules into DI registry
+// Can replace/augment DI services for instrumentation or mocking out heavy dependencies
 // Used with 'ng-app' directive
 window.name = NG_DEFER_BOOTSTRAP!someName;
 // When angular.bootstrap() is called, the bootstrap process will be paused until:
@@ -65,16 +63,16 @@ angular.resumeBootstrap(['moduleName', ...]);
 // ==================================================
 // Component can get hold of its dependencies in 3 ways - by creating, looking up, and having dependency passed where needed (preferred)
 // First 2 ways hard code dependency to the component, making it difficult if not impossible to modify dependencies for test isolation
-// The 3 equivalent ways to provide dependency annotation information used by injector for resolving dependencies:
+// 3 equivalent ways to provide dependency annotation information used by injector for resolving dependencies:
 
-// Way 1 - Implicit Dependencies
-// ------------------------------
+// Way 1 - Implicit Annotation
+// ----------------------------
 // Automatic function annotations (disabled in "strict-di" mode)
 // Does not work with minifiers/obfuscators as it rename method parameters
 function componentName(dependency, ...) { ... }
 
-// Way 2 - $inject Property Explicit Annotation
-// ---------------------------------------------
+// Way 2 - Explicit Annotation
+// ----------------------------
 // Order of dependencies must match the order of method parameters
 var componentName = function(renamedDependency, ...) { ... };
 componentName['$inject'] = ['dependency', ...];
@@ -82,7 +80,7 @@ componentName['$inject'] = ['dependency', ...];
 function componentName(renamedDependency, ...) { ... };
 componentName.$inject = ['dependency', ...];
 
-angular.module('moduleName').componentType('componentName', componentName);
+moduleInstance.componentType('componentName', componentName);
 
 // Way 3 - Inline Array Annotation
 // --------------------------------
@@ -94,34 +92,34 @@ moduleInstance.componentType('componentName', ['dependency', ..., function(renam
 
 // Modules
 // ========
-// Provide a way of managing $injector configuration and have nothing to do with loading of scripts into VM
+// Manage $injector configuration and have nothing to do with loading of scripts into VM
 // Each module can only be loaded once, even if multiple other modules require it
 angular.module('moduleName', ['dependency', ...]);    // creates or overwrite a module
-angular.module('moduleName');                         // returns an existing module
+angular.module('moduleName');                         // returns an existing module instance
 
 // Recommended Setup
 // ------------------
 angular.module('moduleName.each_feature', []);
 angular.module('moduleName.each_reusable_component', []);   //especially directives and filters
+// Injected modules have access to each other without any injection into respective definitions
 angular.module('moduleName', ['moduleName.each_feature', 'moduleName.each_reusable_component']);   //application level module with init code
-// Above the modules each_feature and each_reusable_component have access to each other without any injection in respective definations
 
 angular.module('moduleName', []).
-    config(['depProvider', .., function(depProvider, ...) {
-        // config block - gets executed during the provider registration and configuration phase
+    config(['depProvider', ..., function(depProvider, ...) {
+        // Gets executed during the provider registration and configuration phase
         // Can only inject constants and Providers (not instances) with exception of services ($provide and $injector) from AUTO module
         // Prevent accidental instantiation of services before they have been fully configured
         // Can have as many of these as you want
     }]).
     run(['depService', ..., function(depService, ...) {
-        // run block - gets executed after the injector is created and are used to kickstart the application
+        // Gets executed after the injector is created and are used to kickstart the application
         // Can only inject constants and instances (not Providers)
         // Prevent further system configuration during application run time
         // Can have as many of these as you want
     }]);
 
-// Modules Load Cycles
-// --------------------
+// Modules Load Cycle
+// -------------------
 angular.module('moduleName', ['ngXXX', 'ngYYY', ...]);
 // ngXXX - Constant, Providers, Config, Run
 // ngYYY - Constant, Providers, Config, Run
@@ -132,14 +130,14 @@ angular.module('moduleName', ['ngXXX', 'ngYYY', ...]);
 
 // Controllers
 // ============
-// Attach controllers to DOM by either declaring it in route definition via $route service or by using 'ng-controller' in the template itself
-// "ng-controller = CtrlClass" - injects $scope with binded methods/properties into the controller as $scope.xyz
-// "ng-controller = CtrlClass as ctrlInstance" - binds methods/properties directly onto controller as this.xyz or CtrlClass.prototype.xyz
-//// Instantiates the controller and saves it in a variable/property 'ctrlInstance' in the current scope
-//// In the template use 'ctrlInstance.xyz' or else use 'xyz'
+// Can be attached to DOM by either declaring it in route definition or 'ng-controller'
+// "ng-controller = controllerName" - binds methods/properties onto $scope which is injected into controller - $scope.xyz
+// "ng-controller = controllerName as ctrlInstance" - binds methods/properties directly onto controller - this.xyz or ControllerConstructor.prototype.xyz
+//// Instantiates controller and saves it in current $scope property as 'ctrlInstance'
+//// In template use 'ctrlInstance.xyz' or else use 'xyz'
 moduleInstance.controller('controllerName', ['$scope', '$rootScope', '$route', 'dependency', ...,
     function ControllerConstructor ($scope, $rootScope, $route, dependency, ...) {
-        // $route - values that are resolved if controller is instantiated as part of a route
+        // $route - values resolved if controller is instantiated as part of a route
         // mentioning 'ControllerConstructor' is optional and helps with debugger stack traces
     }
 ]);
@@ -148,55 +146,54 @@ moduleInstance.controller('controllerName', ['$scope', '$rootScope', '$route', '
 
 // Expressions
 // ============
+// Can be used in {{interpolation}} bindings and Directive attributes
 // Processed by $parse service instead of JS eval()
-// Operates on containing scope within which they are called
-// {{ ... }} represents interpolation directive
-<p ng-bind="$parent.$eval(expr)">{{expr}} or {{expr operator expr}}</p>
-<div ng-show="fun(arg)" ng-show="var1 == 'cat'" ng-click="var2 = !var2" ng-show="var3">
+// Operates on containing $scope within which they are called
+// Can access context using this, $locals, $window, $document, $location
+// Expression evaluation is forgiving to certain exceptions (undefined, null)
+// NO control flow statements, function declaration, regular expressions, new object creation, comma, void operator
 
-// One-time binding
-// -----------------
+// One-time binding ::
+// --------------------
 // Retains expression value at the end of (first) digest cycle as long as that value is not undefined
-// Gets watch deregistered and frees up resources once the binding is stabilized
+// Gets watch deregistered and frees up resources once the binding is stabilized and digest loop is done
 // Reducing the number of expressions being watched makes the digest loop faster and allows more information to be displayed
 // Expression that does not change once set is a candidate for one-time binding
-::expr
-
-// Value stabilization algorithm
-// ==============================
-// Given an ::expression, when a digest loop is entered and expression is dirty-checked, store its value
-// If value != undefined mark expression result as stable and schedule a task to deregister watch for this expression on exiting digest loop
-// Process the digest loop as normal
-// When digest loop is done and all the values have settled, process the queue of watch deregistration tasks
-// For each watch to be deregistered check again if value != undefined
-// Deregister the watch or keep dirty-checking the watch in the future digest loops starting from step 1
+{{ ::expr }}, ng-if="::expr", ng-class="::{ className: expr }", ng-repeat="expr in ::exprs"
 
 
 
 // Forms
 // ======
-// All HTML5 validation attributes can be used apart from ng- version of each
-// Angular adds appropriate ng-[property] CSS classes to HTML
+// All HTML5 validation attributes can be used apart from ng-* version of each
+// property: $error, $submitted, $pristine, $dirty, $valid, $invalid, $touched, $pending
+// validation: required, validationAttributes, types, customValidation
+// formName.property, formName.inputName.property.validation
+// novalidate - disables browser's native form validation
 <form name="formName" novalidate ng-submit="...">
-<input name="inputFieldName" type="XYZ" ng-model="..." required ng-[attribute]="..." ng-pattern="..." ng-class="..." />
+    <input name="inputName" type="XYZ" ng-model="..." required ng-[attribute]="..." ng-pattern="..." ng-class="..." class="ng-[property]" />
+    <ANY ng-show="formName.inputName.property && formName.inputName.property">Error Message</ANY>
+    <button type="submit" ng-disabled="formName.inputName.property">Label</button>
 
-// property: $error, $pristine, $dirty, $valid, $invalid, $touched
-// validation: required, ng-[attribute], type="XYZ"
-formName.property, formName.inputFieldName.property.validation
-
-<span ng-show="formName.inputFieldName.property && formName.inputFieldName.property">Error Message</span>
-<button type="submit" ng-disabled="formName.inputFieldName.property">Label</button>
-
-// Using ngMessages approach
-// --------------------------
-<div ng-messages="<formName>.<inputName>.$error">
-    <p ng-message="<validationName>">Your message here.</p>
-    <p ng-message="<validationName>">Your message here.</p>
-</div>
-// Reusable ngMessages with File
-<div class="help-block" ng-messages="userForm.email.$error">
-    <div ng-messages-include="messages.html"></div>
-</div>
+// Using ngMessages:
+// ------------------
+// Provides enhanced support for displaying messages within templates
+// Handles the complexity, inheritance and priority sequencing based on the order of how the messages are defined in the template
+// ngMessages - expression evaluating to key/value object (typically formName.inputName.$error object on ngModel instance)
+// ngMessage - string value corresponding to the message key (typically validationName property of formName.inputName.$error object)
+// ngMessageExp  - expression value corresponding to the message key
+// ngMessagesInclude  - string value corresponding to the remote template
+<form name="formName">
+    <input name="inputName" ... />
+    <ANY ng-messages="expression" role="alert" ng-messages-multiple>
+        <ANY ng-message="stringValue">overridden or new message</ANY>
+        <ANY ng-message="stringValue1, stringValue2, ...">...</ANY>
+        <ANY ng-repeat="repeat_expression"> // optional, can also have ng-if, ng-switch
+            <ANY ng-message-exp="expressionValue">{{expressionValue}}</ANY>
+        </ANY>
+        <ANY ng-messages-include="remoteTemplateString">...</ANY>
+    </ANY>
+</form>
 
 
 
@@ -218,7 +215,7 @@ ng-pending // any $asyncValidators are unfulfilled
 // Using filters in view templates
 // --------------------------------
 {{expr | filter:arg:arg:... | filter | ...}}
-// Using a filter in view template (ng-repeat) re-evaluates filter on every digest cycle and can be costly (if array is big)
+// Using filter in template (ng-repeat) re-evaluates filter on every digest cycle and can be costly (if array is big)
 
 // Using filters in controllers, services, and directives
 // -------------------------------------------------------
@@ -248,21 +245,20 @@ moduleInstance.filter('name', ['dep1', ..., function(dep1, ...) {
 
 // Providers
 // ==========
-// Registers a component/service provider/recipe with $injector to return a registered “singleton” provider/service instance
+// Register a recipe with $injector to return a “singleton” service instance
 // Many of $provide service methods are also exposed on angular.Module
-// Factories and Providers inject whatever is returned by the factory and $get function respectively, which could be of any type and could potentially change dynamically at runtime. 
-//Whereas Service, Constant and Value injections are of fixed type and well defined during the definition of the recipe, hence considered type friendly in nature.
+// Factories & Providers inject whatever is returned by the factory & $get function respectively, which could be of any type and could change at runtime.
+//* Service, Constant & Value injections are of fixed type and well defined during the recipe definition, hence considered type friendly in nature.
 
 // Constant Recipe
 // ----------------
-// Register a constant service with the $injector
+// Register constant service with $injector
 // Cannot be overridden by decorator
-// Object available in both config phase and run phase
+// Available in both config (preferred) and run phase
 // Cannot have dependencies
-// Uses type friendly injection
+//* Uses type friendly injection
 // value - can be string, number, array, object or function
-// Preferrably, isolate constant definitions to a module's config method
-// Used to define constant, immutable, configuration values used throughout app
+// Used to define constant, immutable, config values across app
 // returnValue = value
 moduleInstance.constant('name', value);
 // which is same as:
@@ -272,13 +268,12 @@ moduleInstance.controller('ctrlName', function(name) { expect(name).toEqual(valu
 
 // Value Recipe
 // -------------
-// Register a value service with the $injector
-// Object available in run phase, but not in config phase
+// Register value service with $injector
+// Available in run, but not config phase
 // Cannot have dependencies
-// Uses type friendly injection
+//* Uses type friendly injection
 // value - can be string, number, array, object or function
-// Used to create shared, mutable values across modules and components
-// Used to register an existing value, a service object or a function
+// Used to create shared, mutable values across app
 // returnValue = value
 moduleInstance.value('name', value);
 // which is same as:
@@ -288,14 +283,14 @@ moduleInstance.controller('ctrlName', function(name) { expect(name).toEqual(valu
 
 // Service Recipe
 // ---------------
-// Register a service constructor function with the $injector, which will be invoked with 'new' to create a service instace
-// Uses type friendly injection
-// Cannot create functions/primitives, works better for objects of custom type
+// Register service constructor with $injector
+//* Uses type friendly injection
+// Cannot create functions, primitives, works better with custom objects
 // Can have dependencies
-// Object available in run phase, but not in config phase
-// Used if service is to be defined as a type/class in OO manner to take advantage of prototypal inheritance
+// Available in run, but not config phase
+// Used to define a type/class in OO manner, taking advantage of prototypal inheritance
 // Used for sharing utility functions, which could also run as function.call(this) or similar
-// Used to persist data across modules and components without initial configuration
+// Used to persist data across app without initial configuration
 // returnValue = new FunctionYouPassedToService() i.e. Constructor()
 moduleInstance.service('name', ['dep1', ..., function Constructor(dep1, ...) {
     this.properties = values;
@@ -307,11 +302,11 @@ moduleInstance.controller('ctrlName', function(name) { expect(name.properties).t
 
 // Factory Recipe
 // ---------------
-// Register a service factory function with the $injector, which will be called to return a service instance
+// Register service factory with $injector
 // Does not uses type friendly injection
-// Can create service of type primitive, object literal, function, or custom type instance
+// Can create primitives, functions, object literal, or custom objects
 // Can have dependencies
-// Object available in run phase, but not in config phase
+// Available in run, but not config phase
 // Used for returning a ‘class’ function that can then be new'ed to create instances
 // Used with constant functionality modules (i.e., returning a function primitive)
 // returnValue = FunctionYouPassedToFactory() i.e. $getFn()
@@ -327,30 +322,27 @@ moduleInstance.controller('ctrlName', function(name) { expect(name).toEqual(serv
 
 // Provider Recipe
 // ----------------
-// Register a service provider constructor function with the $injector
-// Allows initialization or configuration of provider and its service during app bootstrap
-// For DI the provider instance is cached in providerCache, whereas the return value of its $get (service instance) is cached in instanceCache
-// Under the hood AngularJS only understands $provide.provider, all others (service, factory, value) are derived ones
-// Core recipe, most verbose and most comprehensive
-// Object available in config phase, but not in run phase
+// Register service provider with $injector
+// Allows configuration of provider and its service during bootstrap before injection
+// For DI the provider instance is cached in providerCache, whereas the return value of $get (service instance) is cached in instanceCache
+// All recipes (except constant) are derived from $provide.provider returning registered provider instance
+// Available in config, but not run phase
 // Does not uses type friendly injection
-// Can create functions/primitives
+// Can create functions, primitives
 // Can have dependencies
-// Used if service requires some kind of initialization or configuration before injection that otherwise cannot be adequately addressed
-// Used to expose an API for app-wide configuration that must be made before the app starts
-// returnValue = new FunctionYouPassedToProvider().$get() i.e. name_Provider()
 
 // Way 1 - Constructor function
+// returnValue = new FunctionYouPassedToProvider().$get() i.e. name_Provider()
 moduleInstance.provider('name', function name_Provider() {          // dependencies (Providers, constants, $provide, $injector)
-    this.$get = ['dep1', ..., function name_Factory(dep1, ....) {   // dependencies (Instances, constants)
-        return new ServiceConstructor(dep1);                        // returns service instance
-        // return { ... };                                          // same as line above, using factory pattern
+    this.$get = ['dep1', ..., function name_Factory(dep1, ...) {   // dependencies (Instances, constants)
+        return new ServiceConstructor(dep1);                        // returns service instance using constructor
+        // return { ... };                                          // returns service instance using factory pattern
     }];
     var someThing = 'defaultValue';
-    this.setSomething = function(configOption){
-        someThing = configOption;
+    this.setSomething = function(newValue){
+        someThing = newValue;
     };
-    // to have more OO style code
+    // OO style code, taking advantage of prototypal inheritance
     function ServiceConstructor(dep1){
         // where 'values' may be computed using dep1, someThing, ...
         this.properties = values;
@@ -358,27 +350,30 @@ moduleInstance.provider('name', function name_Provider() {          // dependenc
 });
 
 // Way 2 - Function that returns a provider (or provider factories)
+// returnValue = FunctionYouPassedToProvider().$get() i.e. name_Provider()
 moduleInstance.provider('name', function name_Provider(name2Provider) {             // dependencies (Providers, constants)
     return {
         $get: ['dep1', 'name2', ..., function name_Factory(dep1, name2, ....) {     // dependencies (Instances, constants)
-            return new ServiceConstructor(dep1);                                    // returns instance
+            return new ServiceConstructor(dep1);                                    // returns service instance
         }]
     };
 });
 
 // Way 3 - Provider object
+// returnValue = $get()
 moduleInstance.provider('name', {
     $get: ['dep1', ..., function name_Factory(dep1, ...) {          // dependencies (Instances, constants)
-        return new ServiceConstructor(dep1);                        // returns instance
+        return new ServiceConstructor(dep1);                        // returns service instance
     }]
 });
 
 // Way 4 - Or defining provider in Module config for more flexibility
+// returnValue = $get()
 moduleInstance.config(['$provide', function($provide) {             // dependencies (Providers, constants)
     //do some config stuff here...
     $provide.provider('name', {
         $get: ['dep1', ..., function name_Factory(dep1, ...) {      // dependencies (Instances, constants)
-            return new ServiceConstructor(dep1);                    // returns instance
+            return new ServiceConstructor(dep1);                    // returns service instance
         }]
     });
 }]);
@@ -386,20 +381,20 @@ moduleInstance.config(['$provide', function($provide) {             // dependenc
 // Usage - provider will be available under 'name'+'Provider' key for configuration before injection
 moduleInstance.config(['nameProvider', function(nameProvider) {
     // do some config stuff here...
-    nameProvider.setSomething('configOption');
+    nameProvider.setSomething('newValue');
 }]);
 // Usage - injected as dependency
 moduleInstance.controller('ctrlName', function(name) { expect(name.properties).toEqual(values); });
 
 // Decorators
 // -----------
-// Intercepts the creation of service to override or augment its behaviour
-// Under the hood the provider $get function is wrapped by decorator
-// Used if a (3rd party) module's service needs a tweak before consuming it in your module, without affecting the original service
+// Intercepts creation of service to override/augment its behaviour
+// Under the hood, provider $get function is wrapped by decorator
+// Used if a (3rd party) module's service needs a tweak before consumption, without affecting the original
 moduleInstance.config(function($provide) {
-    // Register a service decorator with the $injector
-    // serviceName - name of service to decorate
-    // $delegate - original service instance to monkey patch, configure, decorate or delegate to
+    // Register service decorator with $injector
+    // serviceName - name of service to decorate or delegate to
+    // $delegate - original service instance
     $provide.decorator('serviceName', function($delegate, ...) {    // dependencies
         // ...
         return $delegatedInstance;                                  // returns instance of decorated/delegated service
@@ -412,26 +407,23 @@ moduleInstance.controller('ctrlName', function(serviceName) { expect(serviceName
 
 // Directives
 // ===========
-// Use custom directives to access DOM, as artifacts accessing DOM are hard to test
-// Attaches specified behavior to DOM element or even transforms DOM element and its children
+// Used to access and transform DOM, as artifacts manipulating DOM are hard to test
 // HTML to JS name normalization process:
 //  1. Strip x- and data- from the front of the element/attributes
 //  2. Convert the :, -, or _-delimited name to camelCase
 // Prefer using dash-delimited format, whereas use data-prefixed version with HTML validation tools
-// Prefer using directives via tag name and attributes over comment and class names for sake of clarity and ease
-// Every time you bind something (e.g. $scope.something, directives) in the UI you create and insert a $watch in a $watch list
+// Prefer using tag name and attributes over comment and class names for sake of clarity and ease
+// Every time something is binded in UI, a $watch is created and insterted in the $watch list
 
 // Text and attribute bindings
 <a ng-href="img/{{username}}.jpg">Hello {{username}}!</a>
 
-// ngAttr allows you to bind to attributes that would otherwise be eagerly processed by browsers or has DOM API's restrictions
-<circle ng-attr-cx="{{cx}}"></circle>       // w/o ngAttr prefix this results in 'Error: Invalid value for attribute cx="{{cx}}"'
+// ngAttr binds attribute that would otherwise be eagerly processed by browsers or has DOM API restrictions
+<circle ng-attr-cx="{{cx}}"></circle>
+// w/o ngAttr prefix it results in 'Error: Invalid value for attribute cx="{{cx}}"'
 
-// Prefix your own directive names to avoid collisions with future standard if any
-// Factory function is invoked only once when the compiler matches the directive for the first time
+// Factory function is invoked only once when the $compiler first matches a directive
 moduleInstance.directive('directiveName', ['dep1', ..., function Factory(dep1, ...) {
-    // Prefer returning the Directive Definition Object over just a post-link function
-    // Tells $compile how the directive should behave when matched
     return {
         // Replace the contents of the directive's element (default)
         // Replace the directive's element itself (if replace:true - DEPRECATED)
@@ -529,9 +521,9 @@ moduleInstance.directive('directiveName', ['dep1', ..., function Factory(dep1, .
         // Groups the collected DOM nodes together as the directive elements
         // Use to repeat a series of elements instead of just one parent element
         multiElement: true,
-        // Specifies the order in which multiple directives defined on a single DOM element are applied
-        // Directives with greater numerical priority are compiled first
-        // Compile and pre-link functions are run in priority order, but post-link functions are run in reverse order
+        // Directives with greater numerical priority are compiled and applied first
+        // compile() and preLink() run in priority order, whereas postLink() run in reverse order
+        // Order of directives with same priority is undefined
         priority: 0
     };
     // OR
@@ -698,29 +690,14 @@ $scope.params = $routeParams; // Controller
     fetchData().then(bootstrapApplication);
 
     function fetchData() {
-        var initInjector = angular.injector(["ng"]);
-        var $http = initInjector.get("$http");
+        var $http = angular.injector(["ng"]).get("$http");
 
-        return $http.get("/path/to/data.json").then(function(response) {
-            myApplication.constant("config", response.data);
-        }, function(errorResponse) {
-            // Handle error case
-        });
-        
-        $injector.invoke(function($rootScope, $compile, $document) {
-            $compile($document)($rootScope);
-            $rootScope.$digest();
-        });
-        
-        // HTML block containing ng-controller added to end of document body by JQuery, and then compiled and linked into current AngularJS scope
-        var $div = $('<div ng-controller="MyCtrl">{{content.label}}</div>');
-        $(document.body).append($div);
-        angular.element(document).injector().invoke(function($compile) {
-            var scope = angular.element($div).scope();
-            $compile($div)(scope);
-        });
-        
-        $injector.instantiate(function myCtrl($scope){ });
+        return $http.get("/path/to/data.json")
+            .then(function(response) {
+                myApplication.constant("config", response.data);
+            }, function(errorResponse) {
+                // Handle error case
+            });
     }
 
     function bootstrapApplication() {
@@ -729,6 +706,42 @@ $scope.params = $routeParams; // Controller
         });
     }
 }());
+
+
+$injector.invoke(function($rootScope, $compile, $document) {
+    $compile($document)($rootScope);
+    $rootScope.$digest();
+});
+
+// HTML block containing ng-controller added to end of document body by JQuery, and then compiled and linked into current AngularJS scope
+var $div = $('<div ng-controller="MyCtrl">{{content.label}}</div>');
+$(document.body).append($div);
+angular.element(document).injector().invoke(function($compile) {
+    var scope = angular.element($div).scope();
+    $compile($div)(scope);
+});
+
+$injector.instantiate(function myCtrl($scope){ });
+
+
+
+window.app.config([
+    '$routeProvider',
+    '$controllerProvider',
+    '$compileProvider',
+    '$filterProvider',
+    '$provide',
+    function ($routeProvider, $controllerProvider, $compileProvider, $filterProvider, $provide) {
+        //router definition here
+        //store a reference to various provider functions
+        window.app.components = {
+            controller: $controllerProvider.register,
+            service: $provide.service
+        }
+    }
+]);
+app.components.controller('loginController'); 
+
 
 
 // $injector = angular.injector(modules, [strictDi]);
