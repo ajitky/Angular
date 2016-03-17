@@ -1,0 +1,38 @@
+AngularJS 1.x:
+
+$(selector) == document.querySelector('selector')
+$$(selector) == document.querySelectorAll('selector')
+element == $0 - $4 == last 4 recently selected DOM elements using inspector
+X = $(element)
+X = angular.element(element)
+
+angular.reloadWithDebugInfo()	// takes precedence over a call to $compileProvider.debugInfoEnabled(false)
+
+X.scope().haOwnProperty('property')
+X.scope().property
+X.scope().$parent.$parent.property
+X.parent().parent().scope().haOwnProperty('property')
+X.scope().$root.property
+X.scope().$digest(...) / $apply(...)
+debug(X.scope().method)		// breaks in browser on 1st statement of method()
+undebug(X.scope().method)
+
+X.isolateScope().property
+
+X.controller(directiveName)		// default is ngController
+X.attr('ng-controller')
+X.closest('[ng-controller]').attr('ng-controller')
+
+X.injector(['moduleName']).get('ServiceName')
+X.injector().get('$rootScope').$broadcast('eventName', 'arg1', 'arg2')
+X.injector().get('$rootScope').$apply(function(){'use strict'; bad = 'bad';})		// cause an exception to test handler
+
+X.inheritedData()
+X.data().$binding[0](X.scope or {...})		// evaluate binding expression
+
+
+Debugging angular 2 applications from console
+
+
+UI Router:
+
