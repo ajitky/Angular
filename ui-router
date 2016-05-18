@@ -309,6 +309,17 @@ $stateProvider
 
 Multiple Named Views:
 ---------------------
+Pros:
+- Provides flexibity
+- You get to have multiple views in any template
+- Great for singleton top-level components (side panel, modal)
+- Many devs put them to great use!
+
+Cons:
+- Often unnecessary, try to nest first!
+- Leading cause of confusion
+- Can lead to antipatterns (but I'll give you some good tips on how to avoid them)
+
 By default there is an 'Implicit Root State' that is always active.
 - No name
 - Url is absolute root
@@ -375,11 +386,19 @@ Multiple Named Views.
 
 Abstract States:
 ----------------
-Abstract States cannot be explicitly activated (attempts to activate it directly will throw ERROR)
+It cannot be explicitly activated (attempts to activate it directly will throw ERROR)
 It can have child states
 It is activated implicity when one of its descendants are activated
-Abstract states will need their own <ui-view/> if child states intend to populate with templates
-Abstract state is used for setting options for its child states
+It will need its own <ui-view/> if child states intend to populate with templates
+It is used for setting options for its child states
 
-
+Abstract State Usages:
+To prepend a url to all child state urls.
+To set a template its child states will populate.
+- Optionally assign a controller to the template. 
+- Provide $scope properties/methods for children to inherit
+To resolves dependencies for child states to use.
+To set custom data for child states or events to use.
+To run an onEnter or onExit function.
+Any combination of the above.
 
