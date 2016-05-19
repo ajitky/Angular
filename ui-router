@@ -7,9 +7,6 @@ Ember: Unlimited nested views mapped to nested routes
 
 ngRoute - $route / $routeProvider (current, single level)
 - Organized around URL routes
-index.html
-	ng-view - content changes with URL... '/home' or '/contacts'
-		ng-include, ng-switch, ng-show/hide
 
 ui-router - $state / $stateProvider & $urlRouterProvider
 - Organized around states, which may optionally have routes as well as other behavior attached
@@ -24,20 +21,20 @@ States vs. Routes:
 - Navigate by 'name/url' vs 'url'
 - 'Multiple (ui-view)' vs 'single (ng-view)' view(s)
 - Populate 'any' vs 'the one' view
-- 'State' vs 'directives' populate parts
+- 'State' vs 'directives' populate nested parts
 
 $stateProvider.state('contact.detail', {
-    url: '/contacts/:id',		    //optional
-    template: '<h1>Hello</h1>',     //plug into the ui-view
-    templateUrl: 'contacts.html',   //plug into the ui-view
-    resolve: { ... }			    //optional, resolve dependencies before controller instantiates
+    url: '/contacts/:id',			//optional
+    template: '<h1>Hello</h1>',     		//plug into the ui-view
+    templateUrl: 'contacts.html',   		//plug into the ui-view
+    resolve: { ... }				//optional, resolve dependencies before controller instantiates
     controller: function($scope){ ... },	//optional
 }) 
 $routeProvider.when('/contacts/:id', {
     template: '<h1>Hello</h1>',
     templateUrl: 'contacts.html',
-    resolve: { ... }			            //optional
-    controller: function($scope){ ... },	//optional
+    resolve: { ... }			        //optional
+controller: function($scope){ ... },		//optional
 }) 
 
 
@@ -58,13 +55,6 @@ Apps usually consist of components within components within components.
     States naturally describe these nested 'pieces/components/controls', like a state within a state within a state...
 
 index.html
-	ui-view - list
-		ui-view - detail
-			ui-view - sub detail
-
-Each template is inserted into the 'ui-view' of its parent state's template. 'index <= top <= top.middle <= top.middle.bottom'
-
-index.html
 <body>
     <ui-view/>
 </body>
@@ -79,6 +69,8 @@ app.js
 .state('top.middle.bottom', {
     template:"<ui-view/>"
 }) 
+
+Each template is inserted into the 'ui-view' of its parent state's template. 'index <= top <= top.middle <= top.middle.bottom'
 
 
 2 ways to nest states:
@@ -199,9 +191,9 @@ State Change Events:
 All these events are fired at the $rootScope level.
 
 $stateChangeStart (event, toState, toParams, fromState, fromParams)
-    use event.preventDefault() to prevent the transition from happening
+    - use event.preventDefault() to prevent the transition from happening
 $stateNotFound (event, unfoundState, fromState, fromParams) 
-    good for lazy state definitions
+    - good for lazy state definitions
 $stateChangeSuccess (event, toState, toParams, fromState, fromParams)
 $stateChangeError (event, toState, toParams, fromState, fromParams, error)
 
