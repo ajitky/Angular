@@ -83,12 +83,12 @@ app.js
 
 2 ways to nest states:
 ----------------------
-The 'dot' in the state name auto-denotes parental hierarchy
+The 'dot' in the state name auto-denotes parental hierarchy...
 $stateProvider
     .state('contacts', {})
     .state('contacts.list', {});
 
-The 'parent' property in config
+The 'parent' property in config...
 $stateProvider
     .state('contacts', {})
     .state('list', {
@@ -368,20 +368,25 @@ Can use relative or absolute naming
         '@' - unnamed view in index.html
 
 
+Potential Anti-pattern:
+-----------------------
+Splitting every possible quadrant of your app into a view
+
+
 Consider:
 ---------
 Anti-patterns aren't clear cut.
 
 What quadrants are dependent on other quadrants? 
-Nested Views for those.
+	- Nested Views for those.
 
 Are multiple quadrants dependent on same parent? Yes.
 And, do the quadrants really need to be separated? Hmm.
 Can they share scope? Yes.
-Then share single view and nest it.
+	- Then share single view and nest it.
 
 Or maybe need encapsulation (unshared scope)? Yes.
-Multiple Named Views.
+	- Multiple Named Views.
 
 
 Abstract States:
@@ -393,10 +398,11 @@ It will need its own <ui-view/> if child states intend to populate with template
 It is used for setting options for its child states
 
 Abstract State Usages:
+----------------------
 To prepend a url to all child state urls.
 To set a template its child states will populate.
-- Optionally assign a controller to the template. 
-- Provide $scope properties/methods for children to inherit
+	- Optionally assign a controller to the template. 
+	- Provide $scope properties/methods for children to inherit
 To resolves dependencies for child states to use.
 To set custom data for child states or events to use.
 To run an onEnter or onExit function.
