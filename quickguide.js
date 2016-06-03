@@ -603,7 +603,6 @@ function asyncFun(arg){
 				reject(reason);
 			}
 		}, 1000);
-		return deferred.promise;
 	});
 }
 var promise = asyncFun(par);
@@ -628,7 +627,10 @@ promise.then(successCallback, errorCallback, notifyCallback).catch(errorCallback
 // Chaining Promises
 // promiseB will be resolved immediately after promiseA is resolved and its value will be the result of promiseA incremented by 1
 promiseB = promiseA.then(function(result) {
-  return result + 1;
+  	return result + 1;
+}, function(reason) {
+	// used to forward rejection in a chain of promises
+	return $q.reject(reason);
 });
 
 
