@@ -43,6 +43,6 @@ flex="noshrink" | Will grow as needed, but won't shrink. Starts with a size base
 
 **General Tips:**
 - Use MOBILE first approach.
-- In case of difficulty with a specific element/component, but not others, try applying the flex attributes to a parent or child <div> of the element instead.
+- In case of difficulty with a specific element/component, but not others, try applying the flex attributes to a parent or child \<div\> of the element instead.
 - Some Flexbox properties cannot be animated.
 - Flexbox can behave differently on different browsers.
