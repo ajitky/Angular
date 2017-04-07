@@ -50,15 +50,13 @@ flex="noshrink" | Will grow as needed, but won't shrink. Starts with a size base
 **Troubleshooting:**
 - In some scenarios layout="column" and breakpoints (xs, gt-xs, sm, gt-sm, etc.) may not work as expected due to CSS specificity rules.
   - Try inverting the layout logic so that the default is layout='row'
-  - Use \<div layout='row' layout-xs="column" \> instead of \<div layout="column" layout-gt-xs="row"\>
+  - Use \<div layout='row' layout-xs="column"\> instead of \<div layout="column" layout-gt-xs="row"\>
+- Some browsers will determine size of the flex containers based on the size of their content.
+  - Specify the height of the outer flex item or container to 100%.
+- Typography CSS Classes: use for visual consistency across the application
 
-Some browsers will determine size of the flex containers based on the size of their content.
-= Specify the height of the outer flex item or container to 100%.
+**Heading Styles:**
+.md-display - 4 to 1, .md-headline, .md-title, .md-subhead
 
-Typography CSS Classes: use for visual consistency across the application
-
-Heading Styles:
-.md-display-4 to 1, .md-headline, .md-title, .md-subhead
-
-Body Copy Styles:
+**Body Copy Styles:**
 .md-body-1, .md-body-2, .md-button, .md-caption
