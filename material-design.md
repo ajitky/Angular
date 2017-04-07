@@ -15,8 +15,8 @@ lg | (min-width: 1280px) and (max-width: 1919px) | 1280px <= width < 1920px
 gt-lg | (min-width: 1920px) | width >= 1920px
 xl | (min-width: 1920px) | width >= 1920px
 
-HTML Markup API		Allowed values (raw or interpolated)
-layout[-xs]			row|column
+HTML Markup API | Allowed values (raw or interpolated)
+layout[-xs] | row\|column
 layout-align[-xs]	LayoutDirection - none|start(*)|center|end|space-around|space-between	 PerpendicularToLayout - none|start|center|end|stretch(*)
 layout-wrap			Allows flex children to wrap within the container if the elements use more than 100%
 layout-nowrap		
