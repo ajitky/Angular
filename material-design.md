@@ -31,8 +31,6 @@ flex-offset[-xs] | integer (increments of 5 for 0%->100%, 100%/3, 200%/3) added 
 show[-xs] | Responsively show elements
 hide[-xs] | Responsively hide elements
 
-** Additional Flex Values: **
-
 flex | Will grow and shrink as needed. Starts with a size of 0%. Same as flex="0".
 flex="none" | Will not grow or shrink. Sized based on its width and height values.
 flex="initial" | Will shrink as needed. Starts with a size based on its width and height values.
