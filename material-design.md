@@ -46,3 +46,19 @@ flex="noshrink" | Will grow as needed, but won't shrink. Starts with a size base
 - In case of difficulty with a specific element/component, but not others, try applying the flex attributes to a parent or child \<div\> of the element instead.
 - Some Flexbox properties cannot be animated.
 - Flexbox can behave differently on different browsers.
+
+**Troubleshooting:**
+- In some scenarios layout="column" and breakpoints (xs, gt-xs, sm, gt-sm, etc.) may not work as expected due to CSS specificity rules.
+  - Try inverting the layout logic so that the default is layout='row'
+  - Use \<div layout='row' layout-xs="column" \> instead of \<div layout="column" layout-gt-xs="row"\>
+
+Some browsers will determine size of the flex containers based on the size of their content.
+= Specify the height of the outer flex item or container to 100%.
+
+Typography CSS Classes: use for visual consistency across the application
+
+Heading Styles:
+.md-display-4 to 1, .md-headline, .md-title, .md-subhead
+
+Body Copy Styles:
+.md-body-1, .md-body-2, .md-button, .md-caption
