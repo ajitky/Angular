@@ -2,9 +2,9 @@ Angular Material Layout is built on CSS3 flexbox which grows or shrinks as neede
 The layout system is based upon element's attributes/directives rather than CSS classes.
 At runtime the layout directives dynamically generate class selectors predefined in angular-material.css. 
 
-Breakpoint	MediaQuery (pixel range)						Activates when device
-NONE		NONE											Sets default API value unless overridden by another breakpoint
-xs			(max-width: 599px)								width < 600px
+Breakpoint  MediaQuery (pixel range)						Activates when device
+NONE		    NONE											Sets default API value unless overridden by another breakpoint
+xs			    (max-width: 599px)								width < 600px
 gt-xs		(min-width: 600px)								width >= 600px
 sm			(min-width: 600px) and (max-width: 959px)		600px <= width < 960px
 gt-sm		(min-width: 960px)								width >= 960px
