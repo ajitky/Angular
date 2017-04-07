@@ -4,7 +4,7 @@
 
 Breakpoint | MediaQuery | Activates when device
 --- | --- | ---
-NONE | NONE	| Sets default API value unless overridden
+None | None	| Sets default API value unless overridden
 xs | (max-width: 599px) | width < 600px
 gt-xs | (min-width: 600px) | width >= 600px
 sm | (min-width: 600px) and (max-width: 959px) | 600px <= width < 960px
@@ -19,5 +19,5 @@ HTML Markup API | Allowed values (raw or interpolated)
 --- | ---
 layout[-xs] | row \| column
 layout-align[-xs]	| InLayoutDirection - none \| start(\*) \| center \|end\|space-around\|space-between
-" | PerpendicularToLayoutDir - none\|start\|center\|end\|stretch(\*)
+  " | PerpendicularToLayoutDir - none\|start\|center\|end\|stretch(\*)
                     
