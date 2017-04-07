@@ -19,6 +19,5 @@ HTML Markup API | Allowed values (raw or interpolated)
 --- | ---
 layout[-xs] | row \| column
 layout-align[-xs]	| InLayoutDirection - none \| start(\*) \| center \|end\|space-around\|space-between
-sdssdsdsds
- | PerpendicularToLayoutDir - none\|start\|center\|end\|stretch(\*)
+" | PerpendicularToLayoutDir - none\|start\|center\|end\|stretch(\*)
                     
