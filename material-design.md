@@ -1,5 +1,4 @@
-# Angular Material Layout is built on CSS3 flexbox which grows or shrinks as needed.
-
+Angular Material Layout is built on CSS3 flexbox which grows or shrinks as needed.
 The layout system is based upon element's attributes/directives rather than CSS classes.
 At runtime the layout directives dynamically generate class selectors predefined in angular-material.css. 
 
