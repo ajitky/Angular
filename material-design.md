@@ -41,7 +41,7 @@ flex="grow" | Will grow and shrink as needed. Starts with a size of 100%. Same a
 flex="nogrow" | Will shrink as needed, but won't grow. Starts with a size based on its width and height values.
 flex="noshrink" | Will grow as needed, but won't shrink. Starts with a size based on its width and height values.
 
-General Tips:
+**General Tips:**
 - Use MOBILE first approach.
 - In case of difficulty with a specific element/component, but not others, try applying the flex attributes to a parent or child <div> of the element instead.
 - Some Flexbox properties cannot be animated.
