@@ -20,4 +20,14 @@ HTML Markup API | Allowed values (raw or interpolated)
 layout[-xs] | row \| column
 layout-align[-xs]	| InLayoutDirection - none \| start(\*) \| center \| end \| space-around \| space-between
 | | PerpendicularToLayoutDirection - none \| start \| center \| end \| stretch(\*)
-                    
+layout-wrap |	Allows flex children to wrap within the container if the elements use more than 100%
+layout-nowrap |
+layout-fill | Forces the layout element to fill its parent container
+layout-margin | Adds margin around each flex child. It also adds a margin to the layout container itself
+layout-padding | Adds padding inside each flex child. It also adds padding to the layout container itself
+flex[-xs] | integer (increments of 5 for 0%->100%, 33 or 66)
+flex-order[-xs] | integer values from -20 to 20
+flex-offset[-xs] | integer (increments of 5 for 0%->100%, 100%/3, 200%/3) added as margin-left
+show[-xs] | Responsively show elements
+hide[-xs] | Responsively hide elements
+
