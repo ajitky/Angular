@@ -16,4 +16,5 @@ gt-lg | (min-width: 1920px) | width >= 1920px
 xl | (min-width: 1920px) | width >= 1920px
 
 HTML Markup API | Allowed values (raw or interpolated)
+--- | ---
 layout[-xs] | row\|column
