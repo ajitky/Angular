@@ -5,7 +5,7 @@ At runtime the layout directives dynamically generate class selectors predefined
 
 Breakpoint | MediaQuery | Activates when device
 --- | --- | ---
-NONE | NONE	| Sets default API value unless overridden by another breakpoint
+NONE | NONE	| Sets default API value unless overridden
 xs | (max-width: 599px) | width < 600px
 gt-xs | (min-width: 600px) | width >= 600px
 sm | (min-width: 600px) and (max-width: 959px) | 600px <= width < 960px
