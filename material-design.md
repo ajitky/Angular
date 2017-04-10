@@ -17,7 +17,7 @@ xl | (min-width: 1920px) | width >= 1920px
 
 HTML Markup API | Allowed values (raw or interpolated)
 --- | ---
-layout[-xs] | row \| column
+layout[-xs] | row \| column. Specify layout direction for children
 layout-align[-xs]	| Sets child alignments within the layout container
 | | InLayoutDirection - none \| start(\*) \| center \| end \| space-around \| space-between
 | | PerpendicularToLayoutDirection - none \| start \| center \| end \| stretch(\*)
