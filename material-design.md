@@ -44,6 +44,14 @@ flex="grow" | Will grow and shrink as needed. Starts with a size of 100%. Same a
 flex="nogrow" | Will shrink as needed, but won't grow. Starts with a size based on its width and height values.
 flex="noshrink" | Will grow as needed, but won't shrink. Starts with a size based on its width and height values.
 
+```html
+<div layout="row" layout-sm="column" layout-wrap layout-align="space-around stretch" layout-padding layout-margin layout-fill>
+  <div flex="66" flex-offset="15">
+  <div flex flex-order="-1">
+  <div flex="none" hide show-gt-sm>
+  <div flex-gt-sm="66" flex="33">
+```
+
 **General Tips:**
 - Use MOBILE first approach.
 - In case of difficulty with a specific element/component, but not others, try applying the flex attributes to a parent or child \<div\> of the element instead.
@@ -63,11 +71,3 @@ flex="noshrink" | Will grow as needed, but won't shrink. Starts with a size base
 
 **Body Copy Styles:**
 .md-body-1, .md-body-2, .md-button, .md-caption
-
-```html
-<div layout="row" layout-sm="column" layout-wrap layout-align="space-around stretch" layout-padding layout-margin layout-fill>
-  <div flex="66" flex-offset="15">
-  <div flex flex-order="-1">
-  <div flex="none" hide show-gt-sm>
-  <div flex-gt-sm="66" flex="33">
-```
