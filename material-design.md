@@ -63,3 +63,10 @@ flex="noshrink" | Will grow as needed, but won't shrink. Starts with a size base
 
 **Body Copy Styles:**
 .md-body-1, .md-body-2, .md-button, .md-caption
+
+
+<div layout="row" layout-sm="column" layout-wrap layout-align="space-around stretch" layout-padding layout-margin layout-fill>
+  <div flex="66" flex-offset="15">
+  <div flex flex-order="-1">
+  <div flex="none" hide show-gt-sm>
+  <div flex-gt-sm="66" flex="33">
