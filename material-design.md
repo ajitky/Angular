@@ -18,7 +18,8 @@ xl | (min-width: 1920px) | width >= 1920px
 HTML Markup API | Allowed values (raw or interpolated)
 --- | ---
 layout[-xs] | row \| column
-layout-align[-xs]	| InLayoutDirection - none \| start(\*) \| center \| end \| space-around \| space-between
+layout-align[-xs]	| Sets child alignments within the layout container
+| | InLayoutDirection - none \| start(\*) \| center \| end \| space-around \| space-between
 | | PerpendicularToLayoutDirection - none \| start \| center \| end \| stretch(\*)
 layout-wrap |	Allows flex children to wrap within the container if the elements use more than 100%
 layout-nowrap |
