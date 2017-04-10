@@ -27,9 +27,10 @@ layout-fill | Forces the layout element to fill its parent container
 layout-margin | Adds margin around each flex child. It also adds a margin to the layout container itself.
 layout-padding | Adds padding inside each flex child. It also adds padding to the layout container itself.
 flex[-xs] | integer (increments of 5 for 0%->100%, 33 or 66)
-flex-order[-xs] | integer values from -20 to 20
+flex-order[-xs] | Sets child's order position within the layout container
+| | integer values from -20 to 20
 flex-offset[-xs] | Sets child's offset (margin-left) percentage within the layout container
-| | integer (increments of 5 for 0%->100%, 100%/3, 200%/3) added as margin-left
+| | integer (increments of 5 for 0%->100%, 33 for 100%/3, 66 for 200%/3)
 show[-xs] | Responsively show elements
 hide[-xs] | Responsively hide elements
 
