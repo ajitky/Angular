@@ -1,5 +1,4 @@
-- Angular Material Layout is built on CSS3 flexbox which grows or shrinks as needed.
-- The layout system is based upon element's attributes/directives rather than CSS classes.
+- Built on CSS3 flexbox, the layout system is based upon element's attributes/directives rather than CSS classes.
 - At runtime the layout directives dynamically generate class selectors predefined in angular-material.css. 
 
 Breakpoint | MediaQuery | Activates when device
@@ -17,7 +16,7 @@ xl | (min-width: 1920px) | width >= 1920px
 
 HTML Markup API | Allowed values (raw or interpolated)
 --- | ---
-layout[-xs] | row \| column. Specify layout direction for children
+layout[-xs] | Specify layout direction for children. row \| column
 layout-align[-xs]	| Sets child alignments within the layout container
 | | InLayoutDirection - none \| start(\*) \| center \| end \| space-around \| space-between
 | | PerpendicularToLayoutDirection - none \| start \| center \| end \| stretch(\*)
