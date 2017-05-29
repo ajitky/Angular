@@ -344,7 +344,7 @@ moduleInstance.provider('name', function name_Provider() {          // dependenc
     };
     // OO style code, taking advantage of prototypal inheritance
     function ServiceConstructor(dep1){
-        // where 'values' may be computed using dep1, someThing, ...
+        values = dep1 + someThing; // where 'values' may be computed using dep1, someThing, ...
         this.properties = values;
     }
 });
@@ -414,6 +414,7 @@ moduleInstance.controller('ctrlName', function(serviceName) { expect(serviceName
 // Prefer using dash-delimited format, whereas use data-prefixed version with HTML validation tools
 // Prefer using tag name and attributes over comment and class names for sake of clarity and ease
 // Every time something is binded in UI, a $watch is created and insterted in the $watch list
+// For every UI element using some directive, a $watch is created and insterted in the $watch list
 
 // Text and attribute bindings
 <a ng-href="img/{{username}}.jpg">Hello {{username}}!</a>
